@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#2E7D32">
-    <title>Land Surveyor Pro - Professional Land Measurement Tool</title>
+    <title>Land Surveyor Pro - Professional Land Measurement</title>
     
     <!-- Leaflet CSS for Maps -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
     
     <style>
         * {
@@ -42,7 +41,7 @@
         }
 
         .header h1 {
-            font-size: 1.3em;
+            font-size: 1.2em;
             margin-bottom: 3px;
         }
 
@@ -54,21 +53,41 @@
         .location-bar {
             background: #2d5a3b;
             color: white;
-            padding: 6px 12px;
+            padding: 8px 12px;
             font-size: 0.75em;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 5px;
+            gap: 8px;
         }
 
         .location-name {
             font-weight: bold;
-            max-width: 50%;
+            max-width: 45%;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        .gps-permission-banner {
+            background: #ff9800;
+            color: #1a1a1a;
+            padding: 8px 12px;
+            text-align: center;
+            font-size: 0.8em;
+            cursor: pointer;
+            display: none;
+        }
+
+        .gps-permission-banner button {
+            background: #2e7d32;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-left: 10px;
+            cursor: pointer;
         }
 
         .stats-panel {
@@ -271,37 +290,6 @@
             .stat-value {
                 font-size: 0.85em;
             }
-            .header h1 {
-                font-size: 1em;
-            }
-            .controls {
-                gap: 5px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .location-bar {
-                font-size: 0.65em;
-            }
-            .btn {
-                padding: 5px 8px;
-            }
-        }
-
-        /* Print styles for report */
-        @media print {
-            .controls, .location-bar, .recording-indicator, .compass, .btn, .header {
-                display: none;
-            }
-            .modal-content {
-                display: block !important;
-                position: relative;
-                margin: 0;
-                padding: 0;
-            }
-            body {
-                overflow: visible;
-            }
         }
     </style>
 </head>
@@ -312,11 +300,17 @@
             <p>Professional Land Measurement | GPS Tracking | Topographic Maps</p>
         </div>
         
+        <!-- GPS Permission Banner -->
+        <div class="gps-permission-banner" id="gpsBanner">
+            <i class="fas fa-map-marker-alt"></i> GPS Required for Land Surveying
+            <button id="enableGpsBtn"><i class="fas fa-location-dot"></i> Enable GPS</button>
+        </div>
+        
         <div class="location-bar">
             <span><i class="fas fa-map-marker-alt"></i> Location:</span>
-            <span class="location-name" id="currentLocationName">Detecting...</span>
+            <span class="location-name" id="currentLocationName">--</span>
             <span><i class="fas fa-globe"></i> <span id="currentCoords">--</span></span>
-            <span><i class="fas fa-satellite-dish"></i> <span id="gpsStatus">Waiting for GPS</span></span>
+            <span><i class="fas fa-satellite-dish"></i> <span id="gpsStatus">⚠️ GPS disabled</span></span>
         </div>
 
         <div class="stats-panel">
@@ -357,12 +351,12 @@
                 <span id="pointTimer">0 points</span>
             </div>
             <div class="info-panel" id="infoPanel">
-                <i class="fas fa-info-circle"></i> Ready | Click map to add points
+                <i class="fas fa-info-circle"></i> Click "Enable GPS" to start
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" id="startBtn">
+            <button class="btn btn-primary" id="startBtn" disabled>
                 <i class="fas fa-play"></i> Start Survey
             </button>
             <button class="btn btn-danger" id="stopBtn" disabled>
@@ -387,7 +381,7 @@
             <button class="btn btn-success" id="satelliteBtn">🛰️ Satellite</button>
             <button class="btn btn-brown" id="topoMapBtn">⛰️ Topographic</button>
             <button class="btn btn-info" id="exportReportBtn">📄 Report</button>
-            <button class="btn btn-primary" id="centerLocationBtn">
+            <button class="btn btn-primary" id="centerLocationBtn" disabled>
                 <i class="fas fa-crosshairs"></i> My Location
             </button>
         </div>
@@ -397,10 +391,10 @@
     <div class="modal" id="saveModal">
         <div class="modal-content">
             <h3><i class="fas fa-save"></i> Save Land Record</h3>
-            <input type="text" id="surveyName" placeholder="Land Name (e.g., Grandfather's Farm)" autocomplete="off">
-            <input type="text" id="landOwner" placeholder="Owner/Family Name" autocomplete="off">
-            <input type="text" id="landRegion" placeholder="Region/State/Province" autocomplete="off">
-            <textarea id="landNotes" rows="3" placeholder="Additional notes (landmarks, boundaries, etc.)"></textarea>
+            <input type="text" id="surveyName" placeholder="Land Name (e.g., Grandfather's Farm)">
+            <input type="text" id="landOwner" placeholder="Owner/Family Name">
+            <input type="text" id="landRegion" placeholder="Region/State/Province">
+            <textarea id="landNotes" rows="3" placeholder="Additional notes..."></textarea>
             <button class="btn btn-primary" id="confirmSave">Save Record</button>
             <button class="btn" id="cancelSave">Cancel</button>
         </div>
@@ -418,10 +412,10 @@
         <div class="modal-content">
             <h3><i class="fas fa-exchange-alt"></i> Display Units</h3>
             <select id="unitSelect">
-                <option value="hectares">🌾 Hectares (ha) - Best for large land</option>
-                <option value="acres">🌽 Acres - Traditional</option>
-                <option value="sqkm">📏 Square Kilometers (km²)</option>
-                <option value="sqm">📐 Square Meters (m²)</option>
+                <option value="hectares">Hectares (ha) - Large Land</option>
+                <option value="acres">Acres</option>
+                <option value="sqkm">Square Kilometers (km²)</option>
+                <option value="sqm">Square Meters (m²)</option>
             </select>
             <button class="btn btn-primary" id="confirmUnits">Apply</button>
             <button class="btn" id="cancelUnits">Cancel</button>
@@ -432,7 +426,7 @@
         <div class="modal-content">
             <h3><i class="fas fa-file-alt"></i> Land Survey Report</h3>
             <div id="reportContent"></div>
-            <button class="btn btn-primary" id="printReport">🖨️ Print / Save PDF</button>
+            <button class="btn btn-primary" id="printReport">Print / Save PDF</button>
             <button class="btn" id="closeReport">Close</button>
         </div>
     </div>
@@ -440,8 +434,8 @@
     <div class="modal" id="searchModal">
         <div class="modal-content">
             <h3><i class="fas fa-search"></i> Search Location</h3>
-            <input type="text" id="searchLocation" placeholder="Village, town, city, or coordinates" autocomplete="off">
-            <button class="btn btn-primary" id="doSearch">🔍 Search</button>
+            <input type="text" id="searchLocation" placeholder="Village, town, city, or coordinates">
+            <button class="btn btn-primary" id="doSearch">Search</button>
             <button class="btn" id="cancelSearch">Cancel</button>
         </div>
     </div>
@@ -449,15 +443,13 @@
     <!-- Scripts -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turf.js/6.5.0/turf.min.js"></script>
-    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
     
     <script>
         // ============================================
-        // LAND SURVEYOR PRO - COMPLETE WEB VERSION
-        // Works on GitHub Pages, any browser, mobile
+        // LAND SURVEYOR PRO - WITH GPS PERMISSION HANDLING
         // ============================================
         
-        // ---------- GLOBAL VARIABLES ----------
+        // Global Variables
         let map;
         let pathPoints = [];
         let polyline;
@@ -469,26 +461,22 @@
         let currentAccuracy = 0;
         let surveyNotes = [];
         let currentPosition = null;
-        let currentHeading = 0;
+        let gpsEnabled = false;
         
         // Map layers
         let currentLayer = null;
         const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
-            maxZoom: 19
+            attribution: '© OpenStreetMap'
         });
         
         const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri, Maxar, Earthstar Geographics',
-            maxZoom: 18
+            attribution: '© Esri, Maxar'
         });
         
         const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenTopoMap contributors',
-            maxZoom: 17
+            attribution: '© OpenTopoMap'
         });
         
-        // Unit conversions
         const unitConversions = {
             hectares: { area: 0.0001, areaUnit: 'ha', perimeter: 0.001, perimeterUnit: 'km' },
             acres: { area: 0.000247105, areaUnit: 'acres', perimeter: 0.001, perimeterUnit: 'km' },
@@ -496,7 +484,7 @@
             sqm: { area: 1, areaUnit: 'm²', perimeter: 1, perimeterUnit: 'm' }
         };
         
-        // ---------- HELPER FUNCTIONS ----------
+        // Helper Functions
         async function getLocationName(lat, lng) {
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`);
@@ -512,7 +500,7 @@
         }
         
         function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000; // Earth's radius in meters
+            const R = 6371000;
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
@@ -600,7 +588,7 @@
                         L.marker([center[1], center[0]], {
                             icon: L.divIcon({
                                 className: 'area-label',
-                                html: `<div style="background: rgba(0,0,0,0.75); color: #ffd700; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; border: 1px solid #ffd700;">
+                                html: `<div style="background: rgba(0,0,0,0.75); color: #ffd700; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
                                         📐 ${areaDisplay} ${unitConversions[currentUnits].areaUnit}
                                        </div>`,
                                 iconSize: [100, 30]
@@ -622,22 +610,14 @@
             const locationName = await getLocationName(lat, lng);
             const marker = L.marker(point).addTo(map);
             marker.bindPopup(`
-                <b>📍 Point ${pathPoints.length}</b><br>
-                <b>Location:</b> ${locationName}<br>
-                <b>Lat:</b> ${lat.toFixed(6)}<br>
-                <b>Lng:</b> ${lng.toFixed(6)}<br>
-                <b>Type:</b> ${isManual ? 'Manual entry' : 'GPS recorded'}
-            `).openPopup();
+                <b>Point ${pathPoints.length}</b><br>
+                📍 ${locationName}<br>
+                Lat: ${lat.toFixed(6)}<br>
+                Lng: ${lng.toFixed(6)}<br>
+                ${isManual ? 'Manual entry' : 'GPS recorded'}
+            `);
             markers.push(marker);
             drawMap();
-            
-            // Update GPS status
-            if (!isManual) {
-                document.getElementById('gpsStatus').innerHTML = `✓ Point ${pathPoints.length} recorded`;
-                setTimeout(() => {
-                    if (isRecording) document.getElementById('gpsStatus').innerHTML = 'Recording active';
-                }, 2000);
-            }
         }
         
         function clearMarkers() {
@@ -645,50 +625,88 @@
             markers = [];
         }
         
-        // ---------- CORE FUNCTIONS ----------
+        // GPS Functions
+        function requestGPSPermission() {
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+            
+            document.getElementById('infoPanel').innerHTML = '<i class="fas fa-satellite-dish"></i> Requesting GPS permission...';
+            document.getElementById('gpsStatus').innerHTML = 'Requesting permission...';
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    gpsEnabled = true;
+                    currentPosition = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    currentAccuracy = Math.round(position.coords.accuracy);
+                    
+                    map.setView([currentPosition.lat, currentPosition.lng], 16);
+                    
+                    const locationName = await getLocationName(currentPosition.lat, currentPosition.lng);
+                    document.getElementById('currentLocationName').textContent = locationName;
+                    document.getElementById('currentCoords').textContent = `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`;
+                    document.getElementById('gpsStatus').innerHTML = '✅ GPS active';
+                    document.getElementById('gpsAccuracy').textContent = currentAccuracy;
+                    document.getElementById('gpsBanner').style.display = 'none';
+                    
+                    // Enable buttons
+                    document.getElementById('startBtn').disabled = false;
+                    document.getElementById('centerLocationBtn').disabled = false;
+                    
+                    L.marker([currentPosition.lat, currentPosition.lng]).addTo(map)
+                        .bindPopup(`📍 Your Location<br>${locationName}<br>Accuracy: ${currentAccuracy}m`)
+                        .openPopup();
+                    
+                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> GPS ready! Click Start Survey to begin';
+                },
+                (error) => {
+                    console.error('GPS Error:', error);
+                    let errorMsg = '';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'Permission denied. Please enable location in browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'GPS signal unavailable. Move to open area.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'GPS timeout. Try again in an open area.';
+                            break;
+                        default:
+                            errorMsg = error.message;
+                    }
+                    alert('GPS Error: ' + errorMsg);
+                    document.getElementById('gpsStatus').innerHTML = '❌ GPS denied';
+                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-exclamation-triangle"></i> GPS permission required for land surveying';
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 15000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
         function initMap() {
             map = L.map('map').setView([20, 0], 2);
             currentLayer = streetLayer;
             currentLayer.addTo(map);
             
             L.control.layers({
-                '🗺️ Street Map': streetLayer,
-                '🛰️ Satellite': satelliteLayer,
-                '⛰️ Topographic': topoLayer
+                'Street Map': streetLayer,
+                'Satellite': satelliteLayer,
+                'Topographic': topoLayer
             }).addTo(map);
             
-            L.control.scale({ metric: true, imperial: true, position: 'bottomright' }).addTo(map);
-            
-            // Get user location
-            if (navigator.geolocation) {
-                document.getElementById('gpsStatus').innerHTML = 'Getting location...';
-                navigator.geolocation.getCurrentPosition(async (position) => {
-                    currentPosition = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    map.setView([currentPosition.lat, currentPosition.lng], 16);
-                    
-                    const locationName = await getLocationName(currentPosition.lat, currentPosition.lng);
-                    document.getElementById('currentLocationName').textContent = locationName;
-                    document.getElementById('currentCoords').textContent = `${currentPosition.lat.toFixed(4)}, ${currentPosition.lng.toFixed(4)}`;
-                    document.getElementById('gpsStatus').innerHTML = 'GPS ready';
-                    
-                    L.marker([currentPosition.lat, currentPosition.lng]).addTo(map)
-                        .bindPopup(`📍 Your Current Location<br>${locationName}`)
-                        .openPopup();
-                }, (error) => {
-                    console.error('Location error:', error);
-                    document.getElementById('gpsStatus').innerHTML = '⚠️ Enable GPS';
-                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Enable location services for GPS tracking';
-                }, { enableHighAccuracy: true, timeout: 10000 });
-            } else {
-                document.getElementById('gpsStatus').innerHTML = '❌ Not supported';
-            }
+            L.control.scale({ metric: true, imperial: true }).addTo(map);
             
             // Manual point on click
             map.on('click', (e) => {
-                if (!isRecording) {
+                if (!isRecording && gpsEnabled) {
                     if (confirm(`Add manual point at this location?\nLat: ${e.latlng.lat.toFixed(6)}\nLng: ${e.latlng.lng.toFixed(6)}`)) {
                         addPoint(e.latlng.lat, e.latlng.lng, true);
                         surveyNotes.push({ lat: e.latlng.lat, lng: e.latlng.lng, note: 'Manual boundary point', time: new Date() });
@@ -696,27 +714,21 @@
                 }
             });
             
-            // Compass/orientation
-            if (window.DeviceOrientationEvent) {
-                window.addEventListener('deviceorientation', (e) => {
-                    if (e.webkitCompassHeading !== undefined) {
-                        currentHeading = e.webkitCompassHeading;
-                        document.getElementById('heading').textContent = `${Math.round(currentHeading)}°`;
-                    } else if (e.alpha !== null) {
-                        currentHeading = e.alpha;
-                        document.getElementById('heading').textContent = `${Math.round(currentHeading)}°`;
-                    }
-                });
-            }
+            // Show GPS banner if not enabled
+            setTimeout(() => {
+                if (!gpsEnabled) {
+                    document.getElementById('gpsBanner').style.display = 'flex';
+                }
+            }, 500);
         }
         
         function startRecording() {
-            if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser');
+            if (!gpsEnabled) {
+                alert('Please enable GPS first by clicking "Enable GPS"');
                 return;
             }
             
-            if (pathPoints.length > 0 && !confirm('Start a new survey? Current data will be cleared.')) {
+            if (pathPoints.length > 0 && !confirm('Start new survey? Current data will be cleared.')) {
                 return;
             }
             
@@ -737,24 +749,13 @@
                         map.setView([latitude, longitude], 18);
                         document.getElementById('infoPanel').innerHTML = `<i class="fas fa-check-circle"></i> Recording | Accuracy: ${accuracy}m | Points: ${pathPoints.length}`;
                         document.getElementById('gpsAccuracy').textContent = currentAccuracy;
-                    } else if (accuracy < 40) {
-                        await addPoint(latitude, longitude, false);
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Low accuracy: ${accuracy}m | Move to open area`;
+                        document.getElementById('currentCoords').textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
                     } else {
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-times-circle"></i> Poor GPS: ${accuracy}m | Need better signal`;
+                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Low accuracy: ${accuracy}m | Move to open area`;
                     }
-                    
-                    document.getElementById('currentCoords').textContent = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
                 },
                 (error) => {
-                    let msg = '';
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED: msg = 'Location permission denied'; break;
-                        case error.POSITION_UNAVAILABLE: msg = 'GPS signal unavailable'; break;
-                        case error.TIMEOUT: msg = 'GPS timeout - move to open area'; break;
-                        default: msg = error.message;
-                    }
-                    alert('GPS Error: ' + msg);
+                    alert('GPS Error during recording: ' + error.message);
                     stopRecording();
                 },
                 {
@@ -768,7 +769,6 @@
             document.getElementById('startBtn').disabled = true;
             document.getElementById('stopBtn').disabled = false;
             document.getElementById('recordingIndicator').style.display = 'flex';
-            document.getElementById('infoPanel').innerHTML = '<i class="fas fa-satellite-dish"></i> Recording started! Walk the boundary slowly.';
         }
         
         function stopRecording() {
@@ -785,27 +785,25 @@
             if (pathPoints.length >= 3) {
                 const area = calculateArea(pathPoints);
                 const areaHa = area * 0.0001;
-                const areaAcres = area * 0.000247105;
-                alert(`✅ SURVEY COMPLETE!\n\n📐 Area: ${areaHa.toFixed(2)} hectares (${areaAcres.toFixed(2)} acres)\n📍 Points recorded: ${pathPoints.length}\n🎯 GPS Accuracy: ${currentAccuracy} meters\n\n💾 Click Save to store this survey permanently.`);
+                alert(`✅ SURVEY COMPLETE!\n\nArea: ${areaHa.toFixed(2)} hectares\nPoints: ${pathPoints.length}\nAccuracy: ${currentAccuracy}m\n\nClick Save to store this survey.`);
             } else {
-                alert('Not enough points recorded. Need at least 3 points to calculate area.\n\nMake sure you walk the entire perimeter of your land.');
+                alert('Not enough points. Need at least 3 points for area calculation.');
             }
         }
         
         function clearMap() {
             if (isRecording) stopRecording();
-            if (confirm('Clear all survey data? This cannot be undone.')) {
+            if (confirm('Clear all survey data?')) {
                 pathPoints = [];
                 surveyNotes = [];
                 clearMarkers();
                 drawMap();
-                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> All data cleared | Start new survey';
             }
         }
         
         function saveSurvey() {
             if (pathPoints.length === 0) {
-                alert('No survey data to save. Please record a survey first.');
+                alert('No survey data to save');
                 return;
             }
             
@@ -819,33 +817,22 @@
                 const notes = document.getElementById('landNotes').value;
                 
                 const area = calculateArea(pathPoints);
-                const perimeter = calculatePerimeter(pathPoints);
-                
                 const surveyData = {
                     id: Date.now(),
                     name: name,
                     owner: owner,
                     region: region,
                     date: new Date().toISOString(),
-                    dateFormatted: new Date().toLocaleString(),
                     points: pathPoints,
-                    area: area,
                     areaHectares: area * 0.0001,
-                    areaAcres: area * 0.000247105,
-                    perimeter: perimeter,
-                    perimeterKm: perimeter / 1000,
                     notes: notes,
-                    surveyNotes: surveyNotes,
-                    pointCount: pathPoints.length,
-                    gpsAccuracy: currentAccuracy
+                    pointCount: pathPoints.length
                 };
                 
-                // Save to localStorage
                 const surveys = JSON.parse(localStorage.getItem('landSurveys') || '[]');
                 surveys.push(surveyData);
                 localStorage.setItem('landSurveys', JSON.stringify(surveys));
                 
-                // Export GeoJSON
                 const geojson = {
                     type: 'Feature',
                     geometry: {
@@ -857,12 +844,7 @@
                         owner: owner,
                         region: region,
                         date: surveyData.date,
-                        dateFormatted: surveyData.dateFormatted,
                         area_hectares: surveyData.areaHectares,
-                        area_acres: surveyData.areaAcres,
-                        perimeter_km: surveyData.perimeterKm,
-                        point_count: surveyData.pointCount,
-                        gps_accuracy_meters: surveyData.gpsAccuracy,
                         notes: notes
                     }
                 };
@@ -872,11 +854,11 @@
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_${Date.now()}.geojson`;
+                a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_survey.geojson`;
                 a.click();
                 URL.revokeObjectURL(url);
                 
-                alert(`✅ LAND RECORD SAVED!\n\n📋 Name: ${name}\n👤 Owner: ${owner}\n📍 Region: ${region}\n📐 Area: ${surveyData.areaHectares.toFixed(2)} hectares (${surveyData.areaAcres.toFixed(2)} acres)\n📏 Perimeter: ${surveyData.perimeterKm.toFixed(2)} km\n📍 Points: ${surveyData.pointCount}\n\n📁 GeoJSON file downloaded to your device.`);
+                alert(`✅ Saved!\n${name}\nArea: ${surveyData.areaHectares.toFixed(2)} hectares\nRegion: ${region}`);
                 
                 modal.style.display = 'none';
                 document.getElementById('surveyName').value = '';
@@ -896,16 +878,15 @@
             const surveyList = document.getElementById('surveyList');
             
             if (surveys.length === 0) {
-                surveyList.innerHTML = '<p style="text-align:center; color:#666;">📂 No saved surveys found.<br>Save a survey first.</p>';
+                surveyList.innerHTML = '<p>No saved surveys found</p>';
             } else {
-                surveyList.innerHTML = surveys.slice().reverse().map(survey => `
+                surveyList.innerHTML = surveys.reverse().map(survey => `
                     <div class="survey-item" data-id="${survey.id}">
-                        <strong>🏡 ${escapeHtml(survey.name)}</strong><br>
-                        👤 Owner: ${escapeHtml(survey.owner)}<br>
-                        📍 Region: ${escapeHtml(survey.region || 'N/A')}<br>
-                        📐 Area: ${survey.areaHectares.toFixed(2)} hectares (${survey.areaAcres.toFixed(2)} acres)<br>
-                        📅 Date: ${survey.dateFormatted || new Date(survey.date).toLocaleDateString()}<br>
-                        📍 Points: ${survey.pointCount}
+                        <strong>${survey.name}</strong><br>
+                        Owner: ${survey.owner}<br>
+                        Region: ${survey.region || 'N/A'}<br>
+                        Area: ${survey.areaHectares.toFixed(2)} hectares<br>
+                        Date: ${new Date(survey.date).toLocaleDateString()}
                     </div>
                 `).join('');
                 
@@ -913,19 +894,11 @@
                     item.onclick = () => {
                         const id = parseInt(item.dataset.id);
                         const survey = surveys.find(s => s.id === id);
-                        if (survey && confirm(`Load survey "${survey.name}"?\nCurrent unsaved data will be lost.`)) {
+                        if (survey && confirm(`Load survey: ${survey.name}?`)) {
                             pathPoints = survey.points;
-                            surveyNotes = survey.surveyNotes || [];
                             clearMarkers();
                             drawMap();
-                            
-                            // Restore form fields
-                            document.getElementById('surveyName').value = survey.name;
-                            document.getElementById('landOwner').value = survey.owner;
-                            document.getElementById('landRegion').value = survey.region || '';
-                            document.getElementById('landNotes').value = survey.notes || '';
-                            
-                            alert(`✅ Loaded: ${survey.name}\n📐 Area: ${survey.areaHectares.toFixed(2)} hectares\n👤 Owner: ${survey.owner}\n📍 Region: ${survey.region || 'N/A'}`);
+                            alert(`Loaded: ${survey.name}\nArea: ${survey.areaHectares.toFixed(2)} hectares`);
                             modal.style.display = 'none';
                         }
                     };
@@ -940,72 +913,45 @@
         
         function generateReport() {
             if (pathPoints.length === 0) {
-                alert('No survey data to generate report. Please record a survey first.');
+                alert('No survey data to generate report');
                 return;
             }
             
             const area = calculateArea(pathPoints);
-            const perimeter = calculatePerimeter(pathPoints);
             const areaHa = area * 0.0001;
-            const areaAcres = area * 0.000247105;
             
             const report = `
                 <div style="text-align: left;">
-                    <h4 style="color: #2e7d32;">📋 LAND SURVEY REPORT</h4>
+                    <h4>Land Survey Report</h4>
                     <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
                     <hr>
-                    <h5>📐 AREA MEASUREMENTS:</h5>
-                    <p>• Hectares: <strong>${areaHa.toFixed(4)} ha</strong></p>
-                    <p>• Acres: <strong>${areaAcres.toFixed(4)} acres</strong></p>
-                    <p>• Square Kilometers: <strong>${(area / 1000000).toFixed(4)} km²</strong></p>
-                    <p>• Square Meters: <strong>${area.toFixed(2)} m²</strong></p>
+                    <h5>Area:</h5>
+                    <p>• Hectares: ${areaHa.toFixed(4)} ha</p>
+                    <p>• Acres: ${(area * 0.000247105).toFixed(4)} acres</p>
+                    <p>• Square Meters: ${area.toFixed(2)} m²</p>
                     
-                    <h5>📏 PERIMETER:</h5>
-                    <p>• Kilometers: <strong>${(perimeter / 1000).toFixed(3)} km</strong></p>
-                    <p>• Meters: <strong>${perimeter.toFixed(2)} m</strong></p>
-                    
-                    <h5>📍 SURVEY DETAILS:</h5>
-                    <p>• Total Points: <strong>${pathPoints.length}</strong></p>
-                    <p>• GPS Accuracy: <strong>${currentAccuracy || 'N/A'} meters</strong></p>
-                    
-                    <h5>📝 NOTES:</h5>
-                    <p>${surveyNotes.map(n => `• ${escapeHtml(n.note)}`).join('<br>') || 'No notes recorded'}</p>
-                    
-                    <h5>🏷️ CLASSIFICATION:</h5>
-                    <p>• <strong>${areaHa > 100 ? 'Large Estate' : areaHa > 10 ? 'Farm / Large Property' : areaHa > 1 ? 'Medium Property' : 'Residential Lot'}</strong></p>
-                    
-                    <hr>
-                    <p style="font-size: 10px; color: #666;">Generated by Land Surveyor Pro</p>
+                    <h5>Survey Details:</h5>
+                    <p>• Points: ${pathPoints.length}</p>
+                    <p>• GPS Accuracy: ${currentAccuracy || 'N/A'} meters</p>
                 </div>
             `;
             
             document.getElementById('reportContent').innerHTML = report;
             document.getElementById('reportModal').style.display = 'flex';
-            
             document.getElementById('printReport').onclick = () => window.print();
             document.getElementById('closeReport').onclick = () => document.getElementById('reportModal').style.display = 'none';
-        }
-        
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
         }
         
         function showUnitsModal() {
             const modal = document.getElementById('unitsModal');
             modal.style.display = 'flex';
-            
             document.getElementById('confirmUnits').onclick = () => {
                 currentUnits = document.getElementById('unitSelect').value;
                 updateStats();
                 drawMap();
                 modal.style.display = 'none';
             };
-            
-            document.getElementById('cancelUnits').onclick = () => {
-                modal.style.display = 'none';
-            };
+            document.getElementById('cancelUnits').onclick = () => modal.style.display = 'none';
         }
         
         function searchLocation() {
@@ -1013,64 +959,48 @@
             modal.style.display = 'flex';
             
             document.getElementById('doSearch').onclick = async () => {
-                const query = document.getElementById('searchLocation').value.trim();
-                if (!query) {
-                    alert('Please enter a location to search');
-                    return;
-                }
+                const query = document.getElementById('searchLocation').value;
+                if (!query) return;
                 
                 try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                     const data = await response.json();
-                    
                     if (data && data.length > 0) {
                         const result = data[0];
                         const lat = parseFloat(result.lat);
                         const lon = parseFloat(result.lon);
                         map.setView([lat, lon], 15);
-                        L.marker([lat, lon]).addTo(map)
-                            .bindPopup(`📍 ${result.display_name}`)
-                            .openPopup();
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-check-circle"></i> Found: ${result.display_name.substring(0, 50)}...`;
+                        L.marker([lat, lon]).addTo(map).bindPopup(`📍 ${result.display_name}`).openPopup();
                     } else {
-                        alert('Location not found. Try a different search term.');
+                        alert('Location not found');
                     }
                 } catch (error) {
                     alert('Search error: ' + error.message);
                 }
-                
                 modal.style.display = 'none';
-                document.getElementById('searchLocation').value = '';
             };
             
-            document.getElementById('cancelSearch').onclick = () => {
-                modal.style.display = 'none';
-            };
+            document.getElementById('cancelSearch').onclick = () => modal.style.display = 'none';
         }
         
         function centerOnMyLocation() {
             if (currentPosition) {
                 map.setView([currentPosition.lat, currentPosition.lng], 17);
                 document.getElementById('infoPanel').innerHTML = '<i class="fas fa-crosshairs"></i> Centered on your location';
-                setTimeout(() => {
-                    if (!isRecording) document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> Ready | Click map to add points';
-                }, 3000);
             } else {
-                alert('Location not available. Please enable GPS and wait for location detection.');
+                alert('Location not available. Enable GPS first.');
             }
         }
         
         function setMapLayer(layer, name) {
-            if (currentLayer) map.removeLayer(currentLayer);
+            map.removeLayer(currentLayer);
             currentLayer = layer;
             currentLayer.addTo(map);
             document.getElementById('infoPanel').innerHTML = `<i class="fas fa-layer-group"></i> ${name} map active`;
-            setTimeout(() => {
-                if (!isRecording) document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> Ready | Click map to add points';
-            }, 2000);
         }
         
-        // ---------- EVENT LISTENERS ----------
+        // Event Listeners
+        document.getElementById('enableGpsBtn').addEventListener('click', requestGPSPermission);
         document.getElementById('startBtn').addEventListener('click', startRecording);
         document.getElementById('stopBtn').addEventListener('click', stopRecording);
         document.getElementById('clearBtn').addEventListener('click', clearMap);
@@ -1090,14 +1020,9 @@
             }
         };
         
-        // ---------- INITIALIZE APP ----------
+        // Initialize
         initMap();
-        console.log('Land Surveyor Pro initialized successfully!');
-        
-        // Check for HTTPS (required for GPS)
-        if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
-            document.getElementById('infoPanel').innerHTML = '<i class="fas fa-exclamation-triangle"></i> HTTPS required for GPS. Some features may not work.';
-        }
+        console.log('Land Surveyor Pro ready - Click "Enable GPS" to start');
     </script>
 </body>
 </html>

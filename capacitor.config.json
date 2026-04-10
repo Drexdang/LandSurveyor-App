@@ -1,0 +1,29 @@
+{
+  "appId": "com.landsurveyor.app",
+  "appName": "Land Surveyor Pro",
+  "webDir": "www",
+  "bundledWebRuntime": false,
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "minSdkVersion": 23,
+    "targetSdkVersion": 33
+  },
+  "plugins": {
+    "Geolocation": {
+      "alwaysRequestAuthorization": true,
+      "accuracy": "high"
+    },
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "launchAutoHide": true,
+      "backgroundColor": "#2E7D32",
+      "androidSplashResourceName": "splash",
+      "androidScaleType": "CENTER_CROP"
+    }
+  }
+}

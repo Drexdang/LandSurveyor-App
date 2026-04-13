@@ -40,19 +40,18 @@
         .header {
             background: linear-gradient(135deg, #1e3c2c, #2d5a3b);
             color: #ffd700;
-            padding: 6px 10px;
+            padding: 4px 8px;
             text-align: center;
             flex-shrink: 0;
         }
-        .header h1 { font-size: 1em; margin-bottom: 2px; }
-        .header p { font-size: 0.6em; opacity: 0.9; display: none; }
+        .header h1 { font-size: 0.9em; }
         
-        /* Status Bar - Compact */
+        /* Status Bar */
         .status-bar {
             background: #2d5a3b;
             color: white;
-            padding: 4px 8px;
-            font-size: 0.65em;
+            padding: 3px 6px;
+            font-size: 0.6em;
             display: flex;
             justify-content: space-between;
             flex-shrink: 0;
@@ -61,54 +60,71 @@
         /* Stats - 2x2 Grid */
         .stats-panel {
             background: white;
-            padding: 6px;
+            padding: 4px;
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 5px;
+            gap: 4px;
             flex-shrink: 0;
         }
         .stat-card {
             background: linear-gradient(135deg, #2d5a3b, #1e3c2c);
             color: #ffd700;
-            padding: 5px;
-            border-radius: 8px;
+            padding: 3px;
+            border-radius: 6px;
             text-align: center;
         }
-        .stat-card i { font-size: 0.9em; }
-        .stat-label { font-size: 0.55em; opacity: 0.9; }
-        .stat-value { font-size: 0.85em; font-weight: bold; }
-        .stat-sub { font-size: 0.5em; opacity: 0.8; }
+        .stat-card i { font-size: 0.8em; }
+        .stat-label { font-size: 0.5em; }
+        .stat-value { font-size: 0.75em; font-weight: bold; }
         
-        /* Map - Takes remaining space */
+        /* Map - Fixed height, not flex-grow */
         .map-container {
-            flex: 1;
+            height: 35vh;
             position: relative;
-            min-height: 200px;
             background: #e8f5e9;
+            flex-shrink: 0;
+            margin: 4px;
+            border-radius: 8px;
+            overflow: hidden;
         }
         #map {
             height: 100%;
             width: 100%;
         }
         
-        /* Button Grid - Better for mobile */
+        /* Button Container - Scrollable if needed */
+        .buttons-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+        }
+        
+        /* Button Groups */
+        .button-group {
+            background: white;
+            margin-bottom: 6px;
+            border-radius: 10px;
+            padding: 6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .group-title {
+            font-size: 0.6em;
+            color: #666;
+            margin-bottom: 5px;
+            padding-left: 4px;
+        }
+        
         .button-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 6px;
-            padding: 8px;
-            background: white;
-            flex-shrink: 0;
-            border-top: 1px solid #eee;
         }
         
-        .button-row {
+        .button-grid-4 {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
-            padding: 0 8px 8px 8px;
-            background: white;
-            flex-shrink: 0;
         }
         
         .btn {
@@ -131,7 +147,6 @@
         .btn-info { background: #1565c0; color: white; }
         .btn-success { background: #00897b; color: white; }
         .btn-brown { background: #5d4037; color: white; }
-        .btn-gray { background: #757575; color: white; }
         
         .btn:disabled {
             opacity: 0.5;
@@ -146,13 +161,13 @@
             z-index: 1000;
             background: rgba(198,40,40,0.95);
             color: white;
-            padding: 3px 8px;
-            border-radius: 15px;
+            padding: 2px 6px;
+            border-radius: 12px;
             display: none;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             animation: pulse 1.5s infinite;
-            font-size: 0.6em;
+            font-size: 0.55em;
             font-weight: bold;
         }
         
@@ -162,19 +177,17 @@
             100% { opacity: 1; transform: scale(1); }
         }
         
-        /* Info Panel */
         .info-panel {
             position: absolute;
             bottom: 5px;
             left: 5px;
             z-index: 1000;
-            background: rgba(0,0,0,0.75);
+            background: rgba(0,0,0,0.7);
             color: white;
-            padding: 4px 8px;
-            border-radius: 6px;
-            font-size: 0.6em;
+            padding: 3px 6px;
+            border-radius: 5px;
+            font-size: 0.55em;
             pointer-events: none;
-            max-width: 65%;
         }
         
         .live-tracker {
@@ -184,10 +197,9 @@
             z-index: 1000;
             background: rgba(0,0,0,0.7);
             color: #ffd700;
-            padding: 3px 6px;
-            border-radius: 12px;
-            font-size: 0.55em;
-            font-family: monospace;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-size: 0.5em;
         }
         
         /* Modal */
@@ -208,24 +220,24 @@
             padding: 15px;
             border-radius: 12px;
             max-width: 90%;
-            width: 320px;
+            width: 300px;
             text-align: center;
         }
         .modal-content input, .modal-content textarea {
             width: 100%;
-            padding: 8px;
-            margin: 8px 0;
+            padding: 6px;
+            margin: 6px 0;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 6px;
+            font-size: 12px;
         }
-        .survey-list { max-height: 250px; overflow-y: auto; }
-        .survey-item { padding: 8px; border: 1px solid #ddd; margin: 5px 0; border-radius: 6px; cursor: pointer; }
+        .survey-list { max-height: 200px; overflow-y: auto; }
+        .survey-item { padding: 6px; border: 1px solid #ddd; margin: 4px 0; border-radius: 5px; cursor: pointer; font-size: 0.7em; }
         
         @media (max-width: 480px) {
-            .btn { font-size: 0.6em; padding: 6px 3px; }
-            .button-grid { gap: 4px; padding: 6px; }
-            .button-row { gap: 4px; padding: 0 6px 6px 6px; }
+            .btn { font-size: 0.6em; padding: 6px 2px; }
+            .button-grid, .button-grid-4 { gap: 4px; }
+            .map-container { height: 30vh; }
         }
     </style>
 </head>
@@ -236,7 +248,7 @@
         </div>
         
         <div class="status-bar">
-            <span><i class="fas fa-map-marker-alt"></i> <span id="movementStatus">Waiting</span></span>
+            <span><i class="fas fa-map-marker-alt"></i> <span id="movementStatus">Wait</span></span>
             <span><i class="fas fa-arrows-alt"></i> <span id="lastDistance">0</span>m</span>
             <span><i class="fas fa-satellite-dish"></i> <span id="gpsStatus">Off</span></span>
         </div>
@@ -272,38 +284,56 @@
                 <i class="fas fa-circle"></i> REC <span id="pointTimer">0</span>
             </div>
             <div class="info-panel" id="infoPanel">
-                <i class="fas fa-info-circle"></i> Tap GPS to start
+                Tap GPS to start
             </div>
             <div class="live-tracker" id="liveTracker">
                 📍 --
             </div>
         </div>
 
-        <!-- Main Action Buttons - Row 1 -->
-        <div class="button-grid">
-            <button class="btn btn-primary" id="enableGpsBtn"><i class="fas fa-location-dot"></i> GPS</button>
-            <button class="btn btn-primary" id="startBtn" disabled><i class="fas fa-play"></i> Start</button>
-            <button class="btn btn-danger" id="stopBtn" disabled><i class="fas fa-stop"></i> Stop</button>
+        <!-- Scrollable Buttons Area -->
+        <div class="buttons-container">
+            <!-- Group 1: Main Actions -->
+            <div class="button-group">
+                <div class="group-title">📋 MAIN</div>
+                <div class="button-grid">
+                    <button class="btn btn-primary" id="enableGpsBtn"><i class="fas fa-location-dot"></i> GPS</button>
+                    <button class="btn btn-primary" id="startBtn" disabled><i class="fas fa-play"></i> Start</button>
+                    <button class="btn btn-danger" id="stopBtn" disabled><i class="fas fa-stop"></i> Stop</button>
+                </div>
+            </div>
+            
+            <!-- Group 2: Data Management -->
+            <div class="button-group">
+                <div class="group-title">💾 DATA</div>
+                <div class="button-grid-4">
+                    <button class="btn btn-warning" id="clearBtn"><i class="fas fa-trash"></i> Clear</button>
+                    <button class="btn btn-info" id="saveBtn"><i class="fas fa-save"></i> Save</button>
+                    <button class="btn btn-success" id="loadBtn"><i class="fas fa-folder"></i> Load</button>
+                    <button class="btn btn-info" id="exportReportBtn"><i class="fas fa-file"></i> Report</button>
+                </div>
+            </div>
+            
+            <!-- Group 3: Map Layers -->
+            <div class="button-group">
+                <div class="group-title">🗺️ MAP</div>
+                <div class="button-grid-4">
+                    <button class="btn btn-info" id="streetMapBtn">Street</button>
+                    <button class="btn btn-success" id="satelliteBtn">Satellite</button>
+                    <button class="btn btn-brown" id="topoMapBtn">Topographic</button>
+                    <button class="btn btn-primary" id="centerLocationBtn" disabled><i class="fas fa-crosshairs"></i> Locate</button>
+                </div>
+            </div>
+            
+            <!-- Group 4: Search -->
+            <div class="button-group">
+                <div class="group-title">🔍 SEARCH</div>
+                <div class="button-grid">
+                    <button class="btn btn-brown" id="searchBtn"><i class="fas fa-search"></i> Search Location</button>
+                    <button class="btn btn-info" id="unitsBtn">Change Units</button>
+                </div>
+            </div>
         </div>
-        
-        <!-- Secondary Buttons - Row 2 -->
-        <div class="button-row">
-            <button class="btn btn-warning" id="clearBtn"><i class="fas fa-trash"></i> Clear</button>
-            <button class="btn btn-info" id="saveBtn"><i class="fas fa-save"></i> Save</button>
-            <button class="btn btn-success" id="loadBtn"><i class="fas fa-folder"></i> Load</button>
-            <button class="btn btn-info" id="exportReportBtn"><i class="fas fa-file"></i> Report</button>
-        </div>
-        
-        <!-- Map Type Buttons - Row 3 -->
-        <div class="button-row">
-            <button class="btn btn-info" id="streetMapBtn">🗺️ Street</button>
-            <button class="btn btn-success" id="satelliteBtn">🛰️ Sat</button>
-            <button class="btn btn-brown" id="topoMapBtn">⛰️ Topo</button>
-            <button class="btn btn-primary" id="centerLocationBtn" disabled><i class="fas fa-crosshairs"></i> Locate</button>
-        </div>
-
-        <!-- Hidden Search button triggers modal -->
-        <button id="searchBtn" style="display: none;"></button>
     </div>
 
     <!-- Modals -->
@@ -345,13 +375,26 @@
         </div>
     </div>
 
+    <div class="modal" id="unitsModal">
+        <div class="modal-content">
+            <h3>Select Units</h3>
+            <select id="unitSelect">
+                <option value="hectares">Hectares (ha)</option>
+                <option value="acres">Acres</option>
+                <option value="sqkm">Square Kilometers</option>
+                <option value="sqm">Square Meters</option>
+            </select>
+            <button class="btn btn-primary" id="confirmUnits">Apply</button>
+            <button class="btn" id="cancelUnits">Cancel</button>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turf.js/6.5.0/turf.min.js"></script>
     
     <script>
-        // Wait for DOM
         document.addEventListener('DOMContentLoaded', function() {
-            console.log("DOM loaded - Mobile optimized");
+            console.log("DOM loaded");
             
             // ========== VARIABLES ==========
             let map = null;
@@ -491,7 +534,7 @@
             
             // ========== GPS FUNCTIONS ==========
             function enableGPS() {
-                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting GPS...';
+                document.getElementById('infoPanel').innerHTML = 'Requesting GPS...';
                 document.getElementById('gpsStatus').innerHTML = 'Req';
                 if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
                 navigator.geolocation.getCurrentPosition(
@@ -506,7 +549,7 @@
                         document.getElementById('gpsStatus').innerHTML = 'On';
                         document.getElementById('gpsAccuracy').textContent = currentAccuracy;
                         document.getElementById('movementStatus').innerHTML = 'Ready';
-                        document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> GPS ready!';
+                        document.getElementById('infoPanel').innerHTML = 'GPS ready!';
                         document.getElementById('startBtn').disabled = false;
                         document.getElementById('centerLocationBtn').disabled = false;
                         document.getElementById('enableGpsBtn').disabled = true;
@@ -515,7 +558,7 @@
                     (error) => {
                         let errorMsg = error.code === 1 ? 'Allow location in browser' : 'GPS failed';
                         document.getElementById('gpsStatus').innerHTML = 'Off';
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+                        document.getElementById('infoPanel').innerHTML = errorMsg;
                         alert(`GPS Error: ${errorMsg}`);
                     },
                     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -538,11 +581,11 @@
                         currentPosition = { lat, lng };
                         updateLiveMarker(lat, lng);
                         document.getElementById('gpsAccuracy').textContent = currentAccuracy;
-                        if (acc > MAX_GPS_ACCURACY) { document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Poor GPS: ${acc}m`; return; }
+                        if (acc > MAX_GPS_ACCURACY) { document.getElementById('infoPanel').innerHTML = `Poor GPS: ${acc}m`; return; }
                         if (!lastRecordedPoint) {
                             addPoint(lat, lng, false);
                             lastRecordedPoint = [lat, lng];
-                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-route"></i> Recording started!`;
+                            document.getElementById('infoPanel').innerHTML = 'Recording started!';
                             document.getElementById('movementStatus').innerHTML = 'Moving';
                             return;
                         }
@@ -553,11 +596,11 @@
                         if (distanceMoved >= MIN_MOVEMENT_DISTANCE) {
                             addPoint(lat, lng, false);
                             lastRecordedPoint = [lat, lng];
-                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-check-circle"></i> Point ${pathPoints.length}`;
+                            document.getElementById('infoPanel').innerHTML = `Point ${pathPoints.length}`;
                             if (map) map.setView([lat, lng], 18);
                             checkAutoClose();
                         } else {
-                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-hourglass-half"></i> Standing...`;
+                            document.getElementById('infoPanel').innerHTML = 'Standing...';
                             document.getElementById('movementStatus').innerHTML = 'Standing';
                         }
                     },
@@ -599,7 +642,6 @@
                 currentLayer = streetLayer;
                 currentLayer.addTo(map);
                 L.control.layers({ 'Street': streetLayer, 'Satellite': satelliteLayer, 'Topographic': topoLayer }).addTo(map);
-                L.control.scale({ metric: true, imperial: true }).addTo(map);
                 map.on('click', (e) => {
                     if (!isRecording && gpsEnabled && confirm('Add manual point?')) {
                         addPoint(e.latlng.lat, e.latlng.lng, true);
@@ -616,7 +658,7 @@
                     totalDistanceMoved = 0;
                     clearMarkers();
                     drawMap();
-                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> Cleared';
+                    document.getElementById('infoPanel').innerHTML = 'Cleared';
                     document.getElementById('lastDistance').textContent = '0';
                 }
             }
@@ -721,10 +763,15 @@
             }
             
             function showUnitsModal() {
-                const units = ['hectares', 'acres', 'sqkm', 'sqm'];
-                currentUnits = units[(units.indexOf(currentUnits) + 1) % units.length];
-                updateStats();
-                drawMap();
+                const modal = document.getElementById('unitsModal');
+                modal.style.display = 'flex';
+                document.getElementById('confirmUnits').onclick = () => {
+                    currentUnits = document.getElementById('unitSelect').value;
+                    updateStats();
+                    drawMap();
+                    modal.style.display = 'none';
+                };
+                document.getElementById('cancelUnits').onclick = () => modal.style.display = 'none';
             }
             
             // Event Listeners
@@ -739,8 +786,8 @@
             document.getElementById('streetMapBtn').addEventListener('click', () => setMapLayer(streetLayer, 'Street'));
             document.getElementById('satelliteBtn').addEventListener('click', () => setMapLayer(satelliteLayer, 'Satellite'));
             document.getElementById('topoMapBtn').addEventListener('click', () => setMapLayer(topoLayer, 'Topographic'));
-            document.getElementById('areaCard').addEventListener('click', showUnitsModal);
             document.getElementById('searchBtn').addEventListener('click', searchLocation);
+            document.getElementById('unitsBtn').addEventListener('click', showUnitsModal);
             
             window.onclick = (event) => { if (event.target.classList.contains('modal')) event.target.style.display = 'none'; };
             window.addEventListener('resize', () => { if (map) setTimeout(() => map.invalidateSize(), 100); });

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <meta name="theme-color" content="#2E7D32">
     <title>Land Surveyor Pro - Movement Tracking</title>
     
@@ -12,35 +12,38 @@
     
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: #1a472a; overflow: hidden; height: 100vh; }
-        .app-container { max-width: 100%; height: 100vh; background: white; display: flex; flex-direction: column; }
-        .header { background: linear-gradient(135deg, #1e3c2c, #2d5a3b); color: #ffd700; padding: 10px 15px; text-align: center; }
-        .header h1 { font-size: 1.2em; margin-bottom: 3px; }
-        .header p { font-size: 0.7em; opacity: 0.9; }
-        .location-bar { background: #2d5a3b; color: white; padding: 8px 12px; font-size: 0.75em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
-        .stats-panel { background: white; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-        .stat-card { background: linear-gradient(135deg, #2d5a3b, #1e3c2c); color: #ffd700; padding: 8px; border-radius: 10px; text-align: center; cursor: pointer; }
-        .stat-card i { font-size: 1.2em; margin-bottom: 4px; }
-        .stat-label { font-size: 0.7em; opacity: 0.9; }
-        .stat-value { font-size: 1em; font-weight: bold; margin-top: 4px; }
-        .stat-sub { font-size: 0.65em; opacity: 0.8; }
-        .map-container { flex: 1; position: relative; }
+        body { font-family: 'Segoe UI', sans-serif; background: #1a472a; height: 100vh; overflow: hidden; }
+        .app-container { width: 100%; height: 100vh; background: white; display: flex; flex-direction: column; }
+        .header { background: linear-gradient(135deg, #1e3c2c, #2d5a3b); color: #ffd700; padding: 8px 12px; text-align: center; flex-shrink: 0; }
+        .header h1 { font-size: 1.1em; margin-bottom: 2px; }
+        .header p { font-size: 0.65em; opacity: 0.9; }
+        .location-bar { background: #2d5a3b; color: white; padding: 6px 10px; font-size: 0.7em; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px; flex-shrink: 0; }
+        .stats-panel { background: white; padding: 8px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; flex-shrink: 0; }
+        .stat-card { background: linear-gradient(135deg, #2d5a3b, #1e3c2c); color: #ffd700; padding: 6px; border-radius: 8px; text-align: center; cursor: pointer; }
+        .stat-card i { font-size: 1em; margin-bottom: 2px; }
+        .stat-label { font-size: 0.6em; opacity: 0.9; }
+        .stat-value { font-size: 0.85em; font-weight: bold; margin-top: 2px; }
+        .stat-sub { font-size: 0.55em; opacity: 0.8; }
+        .map-container { flex: 1; position: relative; min-height: 200px; background: #e8f5e9; }
         #map { height: 100%; width: 100%; }
-        .controls { background: white; padding: 10px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-        .btn { padding: 8px 14px; border: none; border-radius: 25px; font-size: 0.8em; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .controls { background: white; padding: 8px; display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; flex-shrink: 0; }
+        .btn { padding: 6px 12px; border: none; border-radius: 20px; font-size: 0.7em; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
         .btn-primary { background: #2e7d32; color: white; }
         .btn-danger { background: #c62828; color: white; }
         .btn-warning { background: #f57c00; color: white; }
         .btn-info { background: #1565c0; color: white; }
         .btn-success { background: #00897b; color: white; }
-        .recording-indicator { position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(198,40,40,0.95); color: white; padding: 8px 15px; border-radius: 25px; display: none; align-items: center; gap: 8px; animation: pulse 1.5s infinite; }
+        .btn-brown { background: #5d4037; color: white; }
+        .recording-indicator { position: absolute; top: 5px; right: 5px; z-index: 1000; background: rgba(198,40,40,0.95); color: white; padding: 4px 10px; border-radius: 20px; display: none; align-items: center; gap: 5px; animation: pulse 1.5s infinite; font-size: 0.7em; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 15px; max-width: 90%; width: 380px; text-align: center; }
-        .modal-content input, .modal-content textarea { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; }
-        .info-panel { position: absolute; bottom: 90px; left: 10px; z-index: 1000; background: rgba(0,0,0,0.85); color: white; padding: 8px 12px; border-radius: 8px; font-size: 0.75em; pointer-events: none; }
-        .live-tracker { position: absolute; bottom: 10px; right: 10px; z-index: 1000; background: rgba(0,0,0,0.7); color: #ffd700; padding: 5px 10px; border-radius: 20px; font-size: 0.7em; font-family: monospace; }
-        @media (max-width: 600px) { .stats-panel { grid-template-columns: repeat(2, 1fr); } .btn { padding: 6px 10px; font-size: 0.7em; } }
+        .modal-content { background: white; padding: 15px; border-radius: 15px; max-width: 90%; width: 340px; text-align: center; }
+        .modal-content input, .modal-content textarea { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        .info-panel { position: absolute; bottom: 70px; left: 5px; z-index: 1000; background: rgba(0,0,0,0.8); color: white; padding: 5px 8px; border-radius: 6px; font-size: 0.65em; pointer-events: none; max-width: 70%; }
+        .live-tracker { position: absolute; bottom: 5px; right: 5px; z-index: 1000; background: rgba(0,0,0,0.7); color: #ffd700; padding: 4px 8px; border-radius: 15px; font-size: 0.6em; font-family: monospace; }
+        .survey-list { max-height: 300px; overflow-y: auto; }
+        .survey-item { padding: 10px; border: 1px solid #ddd; margin: 5px 0; border-radius: 8px; cursor: pointer; }
+        @media (max-width: 600px) { .stats-panel { grid-template-columns: repeat(2, 1fr); } .btn { padding: 5px 8px; font-size: 0.65em; } }
     </style>
 </head>
 <body>
@@ -51,18 +54,17 @@
         </div>
         
         <div class="location-bar">
-            <span><i class="fas fa-map-marker-alt"></i> Status:</span>
-            <span id="movementStatus">🟢 Ready</span>
-            <span><i class="fas fa-arrows-alt"></i> <span id="lastDistance">0</span>m moved</span>
-            <span><i class="fas fa-satellite-dish"></i> <span id="gpsStatus">⚠️ GPS off</span></span>
+            <span><i class="fas fa-map-marker-alt"></i> <span id="movementStatus">Waiting for GPS</span></span>
+            <span><i class="fas fa-arrows-alt"></i> <span id="lastDistance">0</span>m</span>
+            <span><i class="fas fa-satellite-dish"></i> <span id="gpsStatus">Off</span></span>
         </div>
 
         <div class="stats-panel">
             <div class="stat-card" id="areaCard">
                 <i class="fas fa-chart-area"></i>
-                <div class="stat-label">Total Area</div>
+                <div class="stat-label">Area</div>
                 <div class="stat-value" id="area">0.00</div>
-                <div class="stat-sub" id="areaUnit">hectares</div>
+                <div class="stat-sub" id="areaUnit">ha</div>
             </div>
             <div class="stat-card" id="perimeterCard">
                 <i class="fas fa-ruler-combined"></i>
@@ -72,13 +74,13 @@
             </div>
             <div class="stat-card" id="pointsCard">
                 <i class="fas fa-map-marker-alt"></i>
-                <div class="stat-label">Path Points</div>
+                <div class="stat-label">Points</div>
                 <div class="stat-value" id="pointCount">0</div>
                 <div class="stat-sub">recorded</div>
             </div>
             <div class="stat-card" id="accuracyCard">
                 <i class="fas fa-satellite-dish"></i>
-                <div class="stat-label">GPS Accuracy</div>
+                <div class="stat-label">GPS Acc</div>
                 <div class="stat-value" id="gpsAccuracy">--</div>
                 <div class="stat-sub">meters</div>
             </div>
@@ -87,33 +89,32 @@
         <div class="map-container">
             <div id="map"></div>
             <div class="recording-indicator" id="recordingIndicator">
-                <i class="fas fa-circle"></i>
-                <span>MOVING & RECORDING...</span>
-                <span id="pointTimer">0 points</span>
+                <i class="fas fa-circle"></i> RECORDING <span id="pointTimer">0</span>
             </div>
             <div class="info-panel" id="infoPanel">
-                <i class="fas fa-info-circle"></i> Enable GPS, then Start Survey
+                <i class="fas fa-info-circle"></i> Enable GPS to start
             </div>
             <div class="live-tracker" id="liveTracker">
-                📍 Live: waiting...
+                📍 Waiting...
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn btn-primary" id="startBtn" disabled><i class="fas fa-play"></i> Start Survey</button>
+            <button class="btn btn-primary" id="startBtn" disabled><i class="fas fa-play"></i> Start</button>
             <button class="btn btn-danger" id="stopBtn" disabled><i class="fas fa-stop"></i> Stop</button>
             <button class="btn btn-warning" id="clearBtn"><i class="fas fa-trash"></i> Clear</button>
             <button class="btn btn-info" id="saveBtn"><i class="fas fa-save"></i> Save</button>
             <button class="btn btn-success" id="loadBtn"><i class="fas fa-folder-open"></i> Load</button>
-            <button class="btn btn-primary" id="enableGpsBtn"><i class="fas fa-location-dot"></i> Enable GPS</button>
+            <button class="btn btn-primary" id="enableGpsBtn"><i class="fas fa-location-dot"></i> GPS</button>
         </div>
         
         <div class="controls" style="padding-top: 0;">
             <button class="btn btn-info" id="streetMapBtn">Street</button>
             <button class="btn btn-success" id="satelliteBtn">Satellite</button>
-            <button class="btn btn-brown" id="topoMapBtn">Topographic</button>
+            <button class="btn btn-brown" id="topoMapBtn">Topo</button>
             <button class="btn btn-info" id="exportReportBtn">Report</button>
-            <button class="btn btn-primary" id="centerLocationBtn" disabled>My Location</button>
+            <button class="btn btn-primary" id="centerLocationBtn" disabled>Locate</button>
+            <button class="btn btn-brown" id="searchBtn">Search</button>
         </div>
     </div>
 
@@ -124,7 +125,7 @@
             <input type="text" id="surveyName" placeholder="Land Name">
             <input type="text" id="landOwner" placeholder="Owner">
             <input type="text" id="landRegion" placeholder="Region">
-            <textarea id="landNotes" rows="3" placeholder="Notes"></textarea>
+            <textarea id="landNotes" rows="2" placeholder="Notes"></textarea>
             <button class="btn btn-primary" id="confirmSave">Save</button>
             <button class="btn" id="cancelSave">Cancel</button>
         </div>
@@ -142,7 +143,7 @@
         <div class="modal-content">
             <h3>Survey Report</h3>
             <div id="reportContent"></div>
-            <button class="btn btn-primary" id="printReport">Print PDF</button>
+            <button class="btn btn-primary" id="printReport">Print</button>
             <button class="btn" id="closeReport">Close</button>
         </div>
     </div>
@@ -160,672 +161,587 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/turf.js/6.5.0/turf.min.js"></script>
     
     <script>
-        // ============================================
-        // MOVEMENT-BASED TRACKING ENGINE
-        // ONLY RECORDS WHEN USER PHYSICALLY MOVES
-        // ============================================
-        
-        // DOM Elements
-        const startBtn = document.getElementById('startBtn');
-        const stopBtn = document.getElementById('stopBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const saveBtn = document.getElementById('saveBtn');
-        const loadBtn = document.getElementById('loadBtn');
-        const enableGpsBtn = document.getElementById('enableGpsBtn');
-        const centerLocationBtn = document.getElementById('centerLocationBtn');
-        const streetMapBtn = document.getElementById('streetMapBtn');
-        const satelliteBtn = document.getElementById('satelliteBtn');
-        const topoMapBtn = document.getElementById('topoMapBtn');
-        const exportReportBtn = document.getElementById('exportReportBtn');
-        const searchBtn = document.getElementById('searchBtn');
-        
-        // Map variables
-        let map;
-        let pathPoints = [];
-        let polyline;
-        let polygon;
-        let markers = [];
-        let watchId = null;
-        let isRecording = false;
-        let currentUnits = 'hectares';
-        let currentAccuracy = 0;
-        let currentPosition = null;
-        let gpsEnabled = false;
-        
-        // MOVEMENT TRACKING VARIABLES
-        let lastRecordedPoint = null;      // Last point saved to path
-        let liveMarker = null;              // Live position dot
-        let heading = 0;                    // Direction of movement
-        let totalDistanceMoved = 0;         // Total distance walked
-        let lastLivePoint = null;           // Last GPS reading for distance calc
-        
-        // CONFIGURATION
-        const MIN_MOVEMENT_DISTANCE = 3;    // Meters - must move this far to record a point
-        const AUTO_CLOSE_DISTANCE = 5;      // Meters - auto close boundary when this close to start
-        const MAX_GPS_ACCURACY = 15;        // Meters - ignore GPS points less accurate than this
-        
-        // Map layers
-        let currentLayer = null;
-        const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        });
-        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri'
-        });
-        const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenTopoMap'
-        });
-        
-        const unitConversions = {
-            hectares: { area: 0.0001, areaUnit: 'ha', perimeter: 0.001, perimeterUnit: 'km' },
-            acres: { area: 0.000247105, areaUnit: 'acres', perimeter: 0.001, perimeterUnit: 'km' },
-            sqkm: { area: 0.000001, areaUnit: 'km²', perimeter: 0.001, perimeterUnit: 'km' },
-            sqm: { area: 1, areaUnit: 'm²', perimeter: 1, perimeterUnit: 'm' }
-        };
-        
-        // ========== HELPER FUNCTIONS ==========
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371000;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) ** 2 +
-                     Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
-                     Math.sin(dLon/2) ** 2;
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-        
-        function calculatePerimeter(points) {
-            if (points.length < 2) return 0;
-            let perimeter = 0;
-            for (let i = 0; i < points.length - 1; i++) {
-                perimeter += calculateDistance(points[i][0], points[i][1], points[i+1][0], points[i+1][1]);
-            }
-            if (points.length >= 3) {
-                perimeter += calculateDistance(points[points.length-1][0], points[points.length-1][1], points[0][0], points[0][1]);
-            }
-            return perimeter;
-        }
-        
-        function calculateArea(points) {
-            if (points.length < 3) return 0;
-            let area = 0;
-            for (let i = 0; i < points.length; i++) {
-                const j = (i + 1) % points.length;
-                area += points[i][0] * points[j][1];
-                area -= points[j][0] * points[i][1];
-            }
-            area = Math.abs(area) / 2;
-            const metersPerDegree = 111319.9;
-            area = area * Math.pow(metersPerDegree, 2);
-            return area;
-        }
-        
-        function updateStats() {
-            const perimeter = calculatePerimeter(pathPoints);
-            const area = calculateArea(pathPoints);
+        // Wait for DOM and ensure map container is ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM fully loaded");
             
-            let displayArea = area * unitConversions[currentUnits].area;
-            let displayPerimeter = perimeter * unitConversions[currentUnits].perimeter;
+            // ========== VARIABLES ==========
+            let map = null;
+            let pathPoints = [];
+            let polyline = null;
+            let polygon = null;
+            let markers = [];
+            let watchId = null;
+            let isRecording = false;
+            let currentUnits = 'hectares';
+            let currentAccuracy = 0;
+            let currentPosition = null;
+            let gpsEnabled = false;
             
-            document.getElementById('area').textContent = displayArea.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+            // Movement tracking
+            let lastRecordedPoint = null;
+            let liveMarker = null;
+            let totalDistanceMoved = 0;
+            let lastLivePoint = null;
+            
+            // Configuration
+            const MIN_MOVEMENT_DISTANCE = 3;
+            const AUTO_CLOSE_DISTANCE = 5;
+            const MAX_GPS_ACCURACY = 25;
+            
+            // Map layers
+            let currentLayer = null;
+            const streetLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
             });
-            document.getElementById('areaUnit').textContent = unitConversions[currentUnits].areaUnit;
-            document.getElementById('perimeter').textContent = displayPerimeter.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+            const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '© Esri'
             });
-            document.getElementById('perimeterUnit').textContent = unitConversions[currentUnits].perimeterUnit;
-            document.getElementById('pointCount').textContent = pathPoints.length;
-            document.getElementById('gpsAccuracy').textContent = currentAccuracy || '--';
+            const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenTopoMap'
+            });
             
-            if (isRecording) {
-                document.getElementById('pointTimer').textContent = `${pathPoints.length} points`;
-                document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
+            const unitConversions = {
+                hectares: { area: 0.0001, areaUnit: 'ha', perimeter: 0.001, perimeterUnit: 'km' },
+                acres: { area: 0.000247105, areaUnit: 'ac', perimeter: 0.001, perimeterUnit: 'km' },
+                sqkm: { area: 0.000001, areaUnit: 'km²', perimeter: 0.001, perimeterUnit: 'km' },
+                sqm: { area: 1, areaUnit: 'm²', perimeter: 1, perimeterUnit: 'm' }
+            };
+            
+            // ========== HELPER FUNCTIONS ==========
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 6371000;
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) ** 2 +
+                         Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+                         Math.sin(dLon/2) ** 2;
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return R * c;
             }
-        }
-        
-        function drawMap() {
-            if (polyline) map.removeLayer(polyline);
-            if (polygon) map.removeLayer(polygon);
             
-            if (pathPoints.length > 0) {
-                polyline = L.polyline(pathPoints, {
-                    color: '#ffd700',
-                    weight: 4,
-                    opacity: 0.9,
-                    smoothFactor: 1.5
-                }).addTo(map);
+            function calculatePerimeter(points) {
+                if (points.length < 2) return 0;
+                let perimeter = 0;
+                for (let i = 0; i < points.length - 1; i++) {
+                    perimeter += calculateDistance(points[i][0], points[i][1], points[i+1][0], points[i+1][1]);
+                }
+                if (points.length >= 3) {
+                    perimeter += calculateDistance(points[points.length-1][0], points[points.length-1][1], points[0][0], points[0][1]);
+                }
+                return perimeter;
+            }
+            
+            function calculateArea(points) {
+                if (points.length < 3) return 0;
+                let area = 0;
+                for (let i = 0; i < points.length; i++) {
+                    const j = (i + 1) % points.length;
+                    area += points[i][0] * points[j][1];
+                    area -= points[j][0] * points[i][1];
+                }
+                area = Math.abs(area) / 2;
+                const metersPerDegree = 111319.9;
+                area = area * Math.pow(metersPerDegree, 2);
+                return area;
+            }
+            
+            function updateStats() {
+                const perimeter = calculatePerimeter(pathPoints);
+                const area = calculateArea(pathPoints);
                 
-                if (pathPoints.length >= 3) {
-                    polygon = L.polygon(pathPoints, {
-                        color: '#2e7d32',
-                        weight: 2,
-                        opacity: 0.8,
-                        fillColor: '#4caf50',
-                        fillOpacity: 0.2
+                let displayArea = area * unitConversions[currentUnits].area;
+                let displayPerimeter = perimeter * unitConversions[currentUnits].perimeter;
+                
+                document.getElementById('area').textContent = displayArea.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById('areaUnit').textContent = unitConversions[currentUnits].areaUnit;
+                document.getElementById('perimeter').textContent = displayPerimeter.toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                document.getElementById('perimeterUnit').textContent = unitConversions[currentUnits].perimeterUnit;
+                document.getElementById('pointCount').textContent = pathPoints.length;
+                document.getElementById('gpsAccuracy').textContent = currentAccuracy || '--';
+                
+                if (isRecording) {
+                    document.getElementById('pointTimer').textContent = pathPoints.length;
+                    document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
+                }
+            }
+            
+            function drawMap() {
+                if (!map) return;
+                if (polyline) map.removeLayer(polyline);
+                if (polygon) map.removeLayer(polygon);
+                
+                if (pathPoints.length > 0) {
+                    polyline = L.polyline(pathPoints, {
+                        color: '#ffd700',
+                        weight: 4,
+                        opacity: 0.9,
+                        smoothFactor: 1.5
                     }).addTo(map);
                     
-                    try {
-                        const center = turf.center(turf.polygon([pathPoints.map(p => [p[1], p[0]])])).geometry.coordinates;
-                        const areaDisplay = (calculateArea(pathPoints) * unitConversions[currentUnits].area).toFixed(2);
-                        L.marker([center[1], center[0]], {
-                            icon: L.divIcon({
-                                className: 'area-label',
-                                html: `<div style="background: rgba(0,0,0,0.75); color: #ffd700; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
-                                        📐 ${areaDisplay} ${unitConversions[currentUnits].areaUnit}
-                                       </div>`,
-                                iconSize: [100, 30]
-                            })
+                    if (pathPoints.length >= 3) {
+                        polygon = L.polygon(pathPoints, {
+                            color: '#2e7d32',
+                            weight: 2,
+                            opacity: 0.8,
+                            fillColor: '#4caf50',
+                            fillOpacity: 0.2
                         }).addTo(map);
-                    } catch(e) {}
+                    }
+                    
+                    const bounds = L.latLngBounds(pathPoints);
+                    if (bounds.isValid()) map.fitBounds(bounds);
+                }
+                updateStats();
+            }
+            
+            function addPoint(lat, lng, isManual = false) {
+                if (!map) return;
+                const point = [lat, lng];
+                pathPoints.push(point);
+                
+                const marker = L.circleMarker(point, {
+                    radius: 5,
+                    color: '#ffd700',
+                    fillColor: '#ffd700',
+                    fillOpacity: 0.8,
+                    weight: 2
+                }).addTo(map);
+                
+                marker.bindPopup(`Point ${pathPoints.length}<br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
+                markers.push(marker);
+                drawMap();
+                
+                if (navigator.vibrate) navigator.vibrate(50);
+            }
+            
+            function clearMarkers() {
+                markers.forEach(marker => map.removeLayer(marker));
+                markers = [];
+            }
+            
+            function updateLiveMarker(lat, lng) {
+                if (!map) return;
+                if (!liveMarker) {
+                    liveMarker = L.circleMarker([lat, lng], {
+                        radius: 8,
+                        color: '#ff4444',
+                        fillColor: '#ff0000',
+                        fillOpacity: 0.9,
+                        weight: 3
+                    }).addTo(map);
+                } else {
+                    liveMarker.setLatLng([lat, lng]);
+                }
+                document.getElementById('liveTracker').innerHTML = `📍 ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+            }
+            
+            // ========== GPS FUNCTIONS ==========
+            function enableGPS() {
+                console.log("enableGPS called");
+                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting GPS...';
+                document.getElementById('gpsStatus').innerHTML = 'Requesting';
+                
+                if (!navigator.geolocation) {
+                    alert('Geolocation not supported');
+                    return;
                 }
                 
-                const bounds = L.latLngBounds(pathPoints);
-                map.fitBounds(bounds);
-            }
-            updateStats();
-        }
-        
-        async function addPoint(lat, lng, isManual = false) {
-            const point = [lat, lng];
-            pathPoints.push(point);
-            
-            const marker = L.circleMarker(point, {
-                radius: 4,
-                color: '#ffd700',
-                fillColor: '#ffd700',
-                fillOpacity: 0.8,
-                weight: 2
-            }).addTo(map);
-            
-            marker.bindPopup(`Point ${pathPoints.length}<br>Lat: ${lat.toFixed(6)}<br>Lng: ${lng.toFixed(6)}`);
-            markers.push(marker);
-            drawMap();
-            
-            // Haptic feedback vibe if available
-            if (navigator.vibrate) navigator.vibrate(50);
-        }
-        
-        function clearMarkers() {
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
-        }
-        
-        function updateLiveMarker(lat, lng) {
-            if (!liveMarker) {
-                liveMarker = L.circleMarker([lat, lng], {
-                    radius: 8,
-                    color: '#ff4444',
-                    fillColor: '#ff0000',
-                    fillOpacity: 0.9,
-                    weight: 3,
-                    className: 'live-marker'
-                }).addTo(map);
-            } else {
-                liveMarker.setLatLng([lat, lng]);
-            }
-            document.getElementById('liveTracker').innerHTML = `📍 ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        }
-        
-        function updateHeading(prev, current) {
-            if (!prev) return;
-            const dy = current[0] - prev[0];
-            const dx = current[1] - prev[1];
-            const angle = Math.atan2(dx, dy) * 180 / Math.PI;
-            heading = (angle + 360) % 360;
-            document.getElementById('heading').textContent = `${heading.toFixed(0)}°`;
-        }
-        
-        function checkAutoClose() {
-            if (pathPoints.length < 3) return;
-            const first = pathPoints[0];
-            const last = pathPoints[pathPoints.length - 1];
-            const distance = calculateDistance(first[0], first[1], last[0], last[1]);
-            if (distance <= AUTO_CLOSE_DISTANCE) {
-                stopRecording();
-                const areaHa = calculateArea(pathPoints) * 0.0001;
-                alert(`✅ Boundary automatically closed!\n\nArea: ${areaHa.toFixed(2)} hectares\nPerimeter: ${(calculatePerimeter(pathPoints)/1000).toFixed(2)} km`);
-            }
-        }
-        
-        // ========== GPS & RECORDING ==========
-        function enableGPS() {
-            if (!navigator.geolocation) {
-                alert('Geolocation not supported');
-                return;
-            }
-            
-            document.getElementById('infoPanel').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Requesting GPS...';
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    gpsEnabled = true;
-                    currentPosition = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    currentAccuracy = Math.round(position.coords.accuracy);
-                    
-                    map.setView([currentPosition.lat, currentPosition.lng], 18);
-                    updateLiveMarker(currentPosition.lat, currentPosition.lng);
-                    
-                    document.getElementById('gpsStatus').innerHTML = '✅ GPS active';
-                    document.getElementById('gpsAccuracy').textContent = currentAccuracy;
-                    document.getElementById('movementStatus').innerHTML = '🟢 Ready to survey';
-                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> GPS ready! Click Start Survey';
-                    
-                    startBtn.disabled = false;
-                    centerLocationBtn.disabled = false;
-                    enableGpsBtn.disabled = true;
-                    
-                    L.marker([currentPosition.lat, currentPosition.lng]).addTo(map)
-                        .bindPopup('📍 Your Location<br>Starting Point')
-                        .openPopup();
-                },
-                (error) => {
-                    let msg = '';
-                    switch(error.code) {
-                        case 1: msg = 'Permission denied. Enable location in browser settings.'; break;
-                        case 2: msg = 'GPS signal unavailable. Move outside.'; break;
-                        case 3: msg = 'GPS timeout. Try again.'; break;
-                        default: msg = error.message;
-                    }
-                    alert('GPS Error: ' + msg);
-                    document.getElementById('gpsStatus').innerHTML = '❌ GPS denied';
-                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-exclamation-triangle"></i> ' + msg;
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-            );
-        }
-        
-        function startRecording() {
-            if (!gpsEnabled) {
-                alert('Please enable GPS first');
-                enableGPS();
-                return;
-            }
-            
-            if (pathPoints.length > 0 && !confirm('Start new survey? Current data will be cleared.')) {
-                return;
-            }
-            
-            // Reset tracking variables
-            isRecording = true;
-            pathPoints = [];
-            lastRecordedPoint = null;
-            totalDistanceMoved = 0;
-            lastLivePoint = null;
-            clearMarkers();
-            drawMap();
-            
-            // Start watching position with MOVEMENT-BASED recording
-            watchId = navigator.geolocation.watchPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
-                    
-                    currentAccuracy = Math.round(accuracy);
-                    currentPosition = { lat: lat, lng: lng };
-                    
-                    // Update live marker
-                    updateLiveMarker(lat, lng);
-                    document.getElementById('gpsAccuracy').textContent = currentAccuracy;
-                    document.getElementById('currentCoords').textContent = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    
-                    // Check accuracy - skip if too inaccurate
-                    if (accuracy > MAX_GPS_ACCURACY) {
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Poor GPS: ${accuracy}m - Move to open area`;
-                        return;
-                    }
-                    
-                    // FIRST POINT - always record the starting point
-                    if (!lastRecordedPoint) {
-                        addPoint(lat, lng, false);
-                        lastRecordedPoint = [lat, lng];
-                        lastLivePoint = [lat, lng];
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-route"></i> Recording started! Walk the boundary...`;
-                        document.getElementById('movementStatus').innerHTML = '🚶 MOVING & RECORDING';
-                        return;
-                    }
-                    
-                    // Calculate distance moved since last recorded point
-                    const distanceMoved = calculateDistance(
-                        lastRecordedPoint[0],
-                        lastRecordedPoint[1],
-                        lat,
-                        lng
-                    );
-                    
-                    // Update total distance walked
-                    if (lastLivePoint) {
-                        const stepDistance = calculateDistance(lastLivePoint[0], lastLivePoint[1], lat, lng);
-                        totalDistanceMoved += stepDistance;
-                        document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
-                    }
-                    lastLivePoint = [lat, lng];
-                    
-                    // ONLY RECORD IF USER MOVED ENOUGH (MIN_MOVEMENT_DISTANCE meters)
-                    if (distanceMoved >= MIN_MOVEMENT_DISTANCE) {
-                        // Calculate direction for heading display
-                        updateHeading(lastRecordedPoint, [lat, lng]);
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        console.log("GPS Success!");
+                        gpsEnabled = true;
+                        currentPosition = {
+                            lat: position.coords.latitude,
+                            lng: position.coords.longitude
+                        };
+                        currentAccuracy = Math.round(position.coords.accuracy);
                         
-                        // Record the point
-                        addPoint(lat, lng, false);
-                        lastRecordedPoint = [lat, lng];
+                        if (map) {
+                            map.setView([currentPosition.lat, currentPosition.lng], 18);
+                            updateLiveMarker(currentPosition.lat, currentPosition.lng);
+                        }
                         
-                        // Update UI
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-check-circle"></i> Recorded point ${pathPoints.length} | Moved ${distanceMoved.toFixed(1)}m`;
-                        document.getElementById('movementStatus').innerHTML = `🚶 MOVED ${distanceMoved.toFixed(0)}m`;
+                        document.getElementById('gpsStatus').innerHTML = 'Active';
+                        document.getElementById('gpsAccuracy').textContent = currentAccuracy;
+                        document.getElementById('movementStatus').innerHTML = 'Ready';
+                        document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> GPS ready! Click Start';
                         
-                        // Auto-center map on current position
-                        map.setView([lat, lng], 18);
+                        document.getElementById('startBtn').disabled = false;
+                        document.getElementById('centerLocationBtn').disabled = false;
+                        document.getElementById('enableGpsBtn').disabled = true;
                         
-                        // Check if boundary is complete (close to start point)
-                        checkAutoClose();
-                        
-                        // Reset status after 1 second
-                        setTimeout(() => {
-                            if (isRecording) {
-                                document.getElementById('movementStatus').innerHTML = '🚶 MOVING & RECORDING';
-                            }
-                        }, 1000);
-                    } else {
-                        // User is standing still or moving very little
-                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-hourglass-half"></i> Stand still - ${distanceMoved.toFixed(1)}m moved (need ${MIN_MOVEMENT_DISTANCE}m to record)`;
-                        document.getElementById('movementStatus').innerHTML = '🟢 STANDING (not recording)';
-                    }
-                },
-                (error) => {
-                    console.error('GPS Error:', error);
-                    alert('GPS Error: ' + error.message);
-                    stopRecording();
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0,
-                    distanceFilter: 1  // Get updates every 1 meter
+                        if (map) {
+                            L.marker([currentPosition.lat, currentPosition.lng]).addTo(map)
+                                .bindPopup('📍 Your Location')
+                                .openPopup();
+                        }
+                    },
+                    (error) => {
+                        console.error("GPS Error:", error);
+                        let errorMsg = '';
+                        switch(error.code) {
+                            case 1: errorMsg = 'Permission denied. Allow location in browser settings.'; break;
+                            case 2: errorMsg = 'GPS signal unavailable. Move outside.'; break;
+                            case 3: errorMsg = 'GPS timeout. Try again.'; break;
+                            default: errorMsg = error.message;
+                        }
+                        document.getElementById('gpsStatus').innerHTML = 'Failed';
+                        document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+                        alert(`GPS Error: ${errorMsg}`);
+                    },
+                    { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                );
+            }
+            
+            // ========== RECORDING FUNCTIONS ==========
+            function startRecording() {
+                if (!gpsEnabled) {
+                    alert('Enable GPS first');
+                    enableGPS();
+                    return;
                 }
-            );
-            
-            startBtn.disabled = true;
-            stopBtn.disabled = false;
-            document.getElementById('recordingIndicator').style.display = 'flex';
-            document.getElementById('movementStatus').innerHTML = '🚶 MOVING & RECORDING';
-        }
-        
-        function stopRecording() {
-            if (watchId !== null) {
-                navigator.geolocation.clearWatch(watchId);
-                watchId = null;
-            }
-            isRecording = false;
-            startBtn.disabled = false;
-            stopBtn.disabled = true;
-            document.getElementById('recordingIndicator').style.display = 'none';
-            document.getElementById('movementStatus').innerHTML = '🟢 Ready';
-            
-            if (pathPoints.length >= 3) {
-                const area = calculateArea(pathPoints);
-                const areaHa = area * 0.0001;
-                const perimeter = calculatePerimeter(pathPoints);
-                alert(`✅ SURVEY COMPLETE!\n\n📐 Area: ${areaHa.toFixed(2)} hectares\n📏 Perimeter: ${(perimeter/1000).toFixed(2)} km\n📍 Points: ${pathPoints.length}\n🚶 Distance walked: ${totalDistanceMoved.toFixed(1)} meters\n\nClick Save to keep this record.`);
-                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> Survey complete! Click Save.';
-            } else {
-                alert('Not enough points. Walk at least ${MIN_MOVEMENT_DISTANCE} meters to record points.');
-                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> Survey stopped - not enough points.';
-            }
-        }
-        
-        // ========== OTHER FUNCTIONS ==========
-        function initMap() {
-            map = L.map('map').setView([20, 0], 2);
-            currentLayer = streetLayer;
-            currentLayer.addTo(map);
-            
-            L.control.layers({
-                'Street': streetLayer,
-                'Satellite': satelliteLayer,
-                'Topographic': topoLayer
-            }).addTo(map);
-            
-            L.control.scale({ metric: true, imperial: true }).addTo(map);
-            
-            // Manual point on click
-            map.on('click', (e) => {
-                if (!isRecording && gpsEnabled) {
-                    if (confirm(`Add manual point?\nLat: ${e.latlng.lat.toFixed(6)}\nLng: ${e.latlng.lng.toFixed(6)}`)) {
-                        addPoint(e.latlng.lat, e.latlng.lng, true);
-                    }
+                
+                if (pathPoints.length > 0 && !confirm('Start new survey? Current data will be cleared.')) {
+                    return;
                 }
-            });
-        }
-        
-        function clearMap() {
-            if (isRecording) stopRecording();
-            if (confirm('Clear all survey data?')) {
+                
+                isRecording = true;
                 pathPoints = [];
                 lastRecordedPoint = null;
                 totalDistanceMoved = 0;
+                lastLivePoint = null;
                 clearMarkers();
                 drawMap();
-                document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> All data cleared';
-                document.getElementById('lastDistance').textContent = '0';
-                document.getElementById('pointCount').textContent = '0';
-            }
-        }
-        
-        function saveSurvey() {
-            if (pathPoints.length === 0) {
-                alert('No survey data to save');
-                return;
-            }
-            
-            const modal = document.getElementById('saveModal');
-            modal.style.display = 'flex';
-            
-            document.getElementById('confirmSave').onclick = () => {
-                const name = document.getElementById('surveyName').value.trim() || 'Family Land';
-                const owner = document.getElementById('landOwner').value.trim() || 'Family Estate';
-                const region = document.getElementById('landRegion').value.trim() || 'Unknown';
-                const notes = document.getElementById('landNotes').value;
                 
-                const area = calculateArea(pathPoints);
-                const surveyData = {
-                    id: Date.now(),
-                    name: name,
-                    owner: owner,
-                    region: region,
-                    date: new Date().toISOString(),
-                    points: pathPoints,
-                    areaHectares: area * 0.0001,
-                    distanceWalked: totalDistanceMoved,
-                    notes: notes,
-                    pointCount: pathPoints.length
-                };
-                
-                const surveys = JSON.parse(localStorage.getItem('landSurveys') || '[]');
-                surveys.push(surveyData);
-                localStorage.setItem('landSurveys', JSON.stringify(surveys));
-                
-                const geojson = {
-                    type: 'Feature',
-                    geometry: {
-                        type: 'Polygon',
-                        coordinates: [pathPoints.map(p => [p[1], p[0]])]
-                    },
-                    properties: {
-                        name: name,
-                        owner: owner,
-                        region: region,
-                        date: surveyData.date,
-                        area_hectares: surveyData.areaHectares,
-                        distance_walked_meters: totalDistanceMoved,
-                        notes: notes
-                    }
-                };
-                
-                const dataStr = JSON.stringify(geojson, null, 2);
-                const blob = new Blob([dataStr], {type: 'application/json'});
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_survey.geojson`;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                alert(`✅ Saved!\n${name}\nArea: ${surveyData.areaHectares.toFixed(2)} hectares\nWalked: ${totalDistanceMoved.toFixed(1)} meters`);
-                
-                modal.style.display = 'none';
-                document.getElementById('surveyName').value = '';
-                document.getElementById('landOwner').value = '';
-                document.getElementById('landRegion').value = '';
-                document.getElementById('landNotes').value = '';
-            };
-            
-            document.getElementById('cancelSave').onclick = () => {
-                modal.style.display = 'none';
-            };
-        }
-        
-        function loadSurveys() {
-            const surveys = JSON.parse(localStorage.getItem('landSurveys') || '[]');
-            const modal = document.getElementById('loadModal');
-            const surveyList = document.getElementById('surveyList');
-            
-            if (surveys.length === 0) {
-                surveyList.innerHTML = '<p>No saved surveys found</p>';
-            } else {
-                surveyList.innerHTML = surveys.reverse().map(survey => `
-                    <div class="survey-item" data-id="${survey.id}">
-                        <strong>${survey.name}</strong><br>
-                        Owner: ${survey.owner}<br>
-                        Area: ${survey.areaHectares.toFixed(2)} hectares<br>
-                        Date: ${new Date(survey.date).toLocaleDateString()}
-                    </div>
-                `).join('');
-                
-                document.querySelectorAll('.survey-item').forEach(item => {
-                    item.onclick = () => {
-                        const id = parseInt(item.dataset.id);
-                        const survey = surveys.find(s => s.id === id);
-                        if (survey && confirm(`Load survey: ${survey.name}?`)) {
-                            pathPoints = survey.points;
-                            clearMarkers();
-                            drawMap();
-                            alert(`Loaded: ${survey.name}\nArea: ${survey.areaHectares.toFixed(2)} hectares`);
-                            modal.style.display = 'none';
+                watchId = navigator.geolocation.watchPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        
+                        currentAccuracy = Math.round(accuracy);
+                        currentPosition = { lat: lat, lng: lng };
+                        
+                        updateLiveMarker(lat, lng);
+                        document.getElementById('gpsAccuracy').textContent = currentAccuracy;
+                        
+                        if (accuracy > MAX_GPS_ACCURACY) {
+                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-exclamation-triangle"></i> Poor GPS: ${accuracy}m`;
+                            return;
                         }
-                    };
+                        
+                        if (!lastRecordedPoint) {
+                            addPoint(lat, lng, false);
+                            lastRecordedPoint = [lat, lng];
+                            lastLivePoint = [lat, lng];
+                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-route"></i> Recording started! Walk boundary.`;
+                            document.getElementById('movementStatus').innerHTML = 'Moving';
+                            return;
+                        }
+                        
+                        const distanceMoved = calculateDistance(
+                            lastRecordedPoint[0],
+                            lastRecordedPoint[1],
+                            lat,
+                            lng
+                        );
+                        
+                        if (lastLivePoint) {
+                            const stepDistance = calculateDistance(lastLivePoint[0], lastLivePoint[1], lat, lng);
+                            totalDistanceMoved += stepDistance;
+                            document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
+                        }
+                        lastLivePoint = [lat, lng];
+                        
+                        if (distanceMoved >= MIN_MOVEMENT_DISTANCE) {
+                            addPoint(lat, lng, false);
+                            lastRecordedPoint = [lat, lng];
+                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-check-circle"></i> Point ${pathPoints.length} | Moved ${distanceMoved.toFixed(0)}m`;
+                            document.getElementById('movementStatus').innerHTML = `Moving ${distanceMoved.toFixed(0)}m`;
+                            if (map) map.setView([lat, lng], 18);
+                            checkAutoClose();
+                            setTimeout(() => {
+                                if (isRecording) document.getElementById('movementStatus').innerHTML = 'Moving';
+                            }, 1000);
+                        } else {
+                            document.getElementById('infoPanel').innerHTML = `<i class="fas fa-hourglass-half"></i> Standing (need ${MIN_MOVEMENT_DISTANCE}m)`;
+                            document.getElementById('movementStatus').innerHTML = 'Standing';
+                        }
+                    },
+                    (error) => {
+                        console.error('Watch Error:', error);
+                        alert('GPS Tracking Error');
+                        stopRecording();
+                    },
+                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0, distanceFilter: 1 }
+                );
+                
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordingIndicator').style.display = 'flex';
+            }
+            
+            function stopRecording() {
+                if (watchId !== null) {
+                    navigator.geolocation.clearWatch(watchId);
+                    watchId = null;
+                }
+                isRecording = false;
+                document.getElementById('startBtn').disabled = false;
+                document.getElementById('stopBtn').disabled = true;
+                document.getElementById('recordingIndicator').style.display = 'none';
+                document.getElementById('movementStatus').innerHTML = 'Ready';
+                
+                if (pathPoints.length >= 3) {
+                    const area = calculateArea(pathPoints);
+                    const areaHa = area * 0.0001;
+                    const perimeter = calculatePerimeter(pathPoints);
+                    alert(`✅ SURVEY COMPLETE!\n\nArea: ${areaHa.toFixed(2)} hectares\nPerimeter: ${(perimeter/1000).toFixed(2)} km\nPoints: ${pathPoints.length}\nWalked: ${totalDistanceMoved.toFixed(1)}m`);
+                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-check-circle"></i> Complete! Click Save.';
+                } else {
+                    alert(`Not enough points. Need at least 3 points. Walk ${MIN_MOVEMENT_DISTANCE}m between points.`);
+                }
+            }
+            
+            function checkAutoClose() {
+                if (pathPoints.length < 3) return;
+                const first = pathPoints[0];
+                const last = pathPoints[pathPoints.length - 1];
+                const distance = calculateDistance(first[0], first[1], last[0], last[1]);
+                if (distance <= AUTO_CLOSE_DISTANCE) {
+                    stopRecording();
+                    alert(`✅ Boundary closed! Area: ${(calculateArea(pathPoints)*0.0001).toFixed(2)} hectares`);
+                }
+            }
+            
+            // ========== OTHER FUNCTIONS ==========
+            function initMap() {
+                console.log("Initializing map...");
+                const mapContainer = document.getElementById('map');
+                if (!mapContainer) {
+                    console.error("Map container not found!");
+                    return;
+                }
+                map = L.map('map').setView([20, 0], 2);
+                currentLayer = streetLayer;
+                currentLayer.addTo(map);
+                
+                L.control.layers({
+                    'Street': streetLayer,
+                    'Satellite': satelliteLayer,
+                    'Topographic': topoLayer
+                }).addTo(map);
+                
+                L.control.scale({ metric: true, imperial: true }).addTo(map);
+                
+                map.on('click', (e) => {
+                    if (!isRecording && gpsEnabled) {
+                        if (confirm(`Add manual point?`)) {
+                            addPoint(e.latlng.lat, e.latlng.lng, true);
+                        }
+                    }
                 });
+                
+                // Force a resize after a short delay to ensure map renders
+                setTimeout(() => {
+                    if (map) map.invalidateSize();
+                    console.log("Map size invalidated");
+                }, 100);
+                
+                console.log("Map initialized successfully");
             }
-            modal.style.display = 'flex';
-            document.getElementById('cancelLoad').onclick = () => modal.style.display = 'none';
-        }
-        
-        function generateReport() {
-            if (pathPoints.length === 0) {
-                alert('No survey data');
-                return;
+            
+            function clearMap() {
+                if (isRecording) stopRecording();
+                if (confirm('Clear all data?')) {
+                    pathPoints = [];
+                    lastRecordedPoint = null;
+                    totalDistanceMoved = 0;
+                    clearMarkers();
+                    drawMap();
+                    document.getElementById('infoPanel').innerHTML = '<i class="fas fa-info-circle"></i> All cleared';
+                    document.getElementById('lastDistance').textContent = '0';
+                    document.getElementById('pointCount').textContent = '0';
+                }
             }
-            const area = calculateArea(pathPoints);
-            const areaHa = area * 0.0001;
-            const report = `
-                <div style="text-align:left">
+            
+            function saveSurvey() {
+                if (pathPoints.length === 0) {
+                    alert('No data to save');
+                    return;
+                }
+                const modal = document.getElementById('saveModal');
+                modal.style.display = 'flex';
+                document.getElementById('confirmSave').onclick = () => {
+                    const name = document.getElementById('surveyName').value.trim() || 'Family Land';
+                    const owner = document.getElementById('landOwner').value.trim() || 'Family';
+                    const region = document.getElementById('landRegion').value.trim() || 'Unknown';
+                    const notes = document.getElementById('landNotes').value;
+                    const area = calculateArea(pathPoints);
+                    const surveyData = {
+                        id: Date.now(), name, owner, region, date: new Date().toISOString(),
+                        points: pathPoints, areaHectares: area * 0.0001,
+                        distanceWalked: totalDistanceMoved, notes, pointCount: pathPoints.length
+                    };
+                    const surveys = JSON.parse(localStorage.getItem('landSurveys') || '[]');
+                    surveys.push(surveyData);
+                    localStorage.setItem('landSurveys', JSON.stringify(surveys));
+                    const geojson = {
+                        type: 'Feature',
+                        geometry: { type: 'Polygon', coordinates: [pathPoints.map(p => [p[1], p[0]])] },
+                        properties: { name, owner, region, date: surveyData.date, area_hectares: surveyData.areaHectares }
+                    };
+                    const dataStr = JSON.stringify(geojson, null, 2);
+                    const blob = new Blob([dataStr], {type: 'application/json'});
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `${name.replace(/[^a-z0-9]/gi, '_')}_survey.geojson`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    alert(`✅ Saved!\n${name}\nArea: ${surveyData.areaHectares.toFixed(2)} ha`);
+                    modal.style.display = 'none';
+                    document.getElementById('surveyName').value = '';
+                    document.getElementById('landOwner').value = '';
+                    document.getElementById('landRegion').value = '';
+                    document.getElementById('landNotes').value = '';
+                };
+                document.getElementById('cancelSave').onclick = () => modal.style.display = 'none';
+            }
+            
+            function loadSurveys() {
+                const surveys = JSON.parse(localStorage.getItem('landSurveys') || '[]');
+                const modal = document.getElementById('loadModal');
+                const surveyList = document.getElementById('surveyList');
+                if (surveys.length === 0) {
+                    surveyList.innerHTML = '<p>No saved surveys</p>';
+                } else {
+                    surveyList.innerHTML = surveys.reverse().map(survey => `
+                        <div class="survey-item" data-id="${survey.id}">
+                            <strong>${survey.name}</strong><br>
+                            Owner: ${survey.owner}<br>
+                            Area: ${survey.areaHectares.toFixed(2)} ha<br>
+                            Date: ${new Date(survey.date).toLocaleDateString()}
+                        </div>
+                    `).join('');
+                    document.querySelectorAll('.survey-item').forEach(item => {
+                        item.onclick = () => {
+                            const id = parseInt(item.dataset.id);
+                            const survey = surveys.find(s => s.id === id);
+                            if (survey && confirm(`Load ${survey.name}?`)) {
+                                pathPoints = survey.points;
+                                clearMarkers();
+                                drawMap();
+                                alert(`Loaded: ${survey.name}\nArea: ${survey.areaHectares.toFixed(2)} ha`);
+                                modal.style.display = 'none';
+                            }
+                        };
+                    });
+                }
+                modal.style.display = 'flex';
+                document.getElementById('cancelLoad').onclick = () => modal.style.display = 'none';
+            }
+            
+            function generateReport() {
+                if (pathPoints.length === 0) { alert('No data'); return; }
+                const area = calculateArea(pathPoints);
+                const areaHa = area * 0.0001;
+                const report = `<div style="text-align:left">
                     <h4>Land Survey Report</h4>
-                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                    <hr>
-                    <p><strong>Area:</strong> ${areaHa.toFixed(4)} hectares (${(area*0.000247105).toFixed(4)} acres)</p>
+                    <p><strong>Date:</strong> ${new Date().toLocaleString()}</p><hr>
+                    <p><strong>Area:</strong> ${areaHa.toFixed(4)} ha (${(area*0.000247105).toFixed(4)} ac)</p>
+                    <p><strong>Perimeter:</strong> ${(calculatePerimeter(pathPoints)/1000).toFixed(2)} km</p>
                     <p><strong>Points:</strong> ${pathPoints.length}</p>
-                    <p><strong>Distance walked:</strong> ${totalDistanceMoved.toFixed(1)} meters</p>
-                    <p><strong>GPS Accuracy:</strong> ${currentAccuracy || 'N/A'} meters</p>
-                </div>
-            `;
-            document.getElementById('reportContent').innerHTML = report;
-            document.getElementById('reportModal').style.display = 'flex';
-            document.getElementById('printReport').onclick = () => window.print();
-            document.getElementById('closeReport').onclick = () => document.getElementById('reportModal').style.display = 'none';
-        }
-        
-        function centerOnMyLocation() {
-            if (currentPosition) {
-                map.setView([currentPosition.lat, currentPosition.lng], 18);
-            } else {
-                alert('Location not available');
-                enableGPS();
+                    <p><strong>Walked:</strong> ${totalDistanceMoved.toFixed(1)} m</p>
+                </div>`;
+                document.getElementById('reportContent').innerHTML = report;
+                document.getElementById('reportModal').style.display = 'flex';
+                document.getElementById('printReport').onclick = () => window.print();
+                document.getElementById('closeReport').onclick = () => document.getElementById('reportModal').style.display = 'none';
             }
-        }
-        
-        function setMapLayer(layer, name) {
-            map.removeLayer(currentLayer);
-            currentLayer = layer;
-            currentLayer.addTo(map);
-            document.getElementById('infoPanel').innerHTML = `${name} map active`;
-        }
-        
-        function searchLocation() {
-            const modal = document.getElementById('searchModal');
-            modal.style.display = 'flex';
-            document.getElementById('doSearch').onclick = async () => {
-                const query = document.getElementById('searchLocation').value;
-                if (!query) return;
-                try {
-                    const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
-                    const data = await res.json();
-                    if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        map.setView([lat, lon], 15);
-                        L.marker([lat, lon]).addTo(map).bindPopup(data[0].display_name).openPopup();
-                    } else alert('Not found');
-                } catch(e) { alert('Search error'); }
-                modal.style.display = 'none';
+            
+            function centerOnMyLocation() {
+                if (currentPosition && map) map.setView([currentPosition.lat, currentPosition.lng], 18);
+                else alert('Location not available');
+            }
+            
+            function setMapLayer(layer, name) {
+                if (!map) return;
+                map.removeLayer(currentLayer);
+                currentLayer = layer;
+                currentLayer.addTo(map);
+                document.getElementById('infoPanel').innerHTML = `${name} map active`;
+            }
+            
+            function searchLocation() {
+                const modal = document.getElementById('searchModal');
+                modal.style.display = 'flex';
+                document.getElementById('doSearch').onclick = async () => {
+                    const query = document.getElementById('searchLocation').value;
+                    if (!query) return;
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
+                        const data = await res.json();
+                        if (data && data.length > 0) {
+                            const lat = parseFloat(data[0].lat);
+                            const lon = parseFloat(data[0].lon);
+                            if (map) {
+                                map.setView([lat, lon], 15);
+                                L.marker([lat, lon]).addTo(map).bindPopup(data[0].display_name).openPopup();
+                            }
+                        } else alert('Not found');
+                    } catch(e) { alert('Search error'); }
+                    modal.style.display = 'none';
+                };
+                document.getElementById('cancelSearch').onclick = () => modal.style.display = 'none';
+            }
+            
+            function showUnitsModal() {
+                const units = ['hectares', 'acres', 'sqkm', 'sqm'];
+                const next = (units.indexOf(currentUnits) + 1) % units.length;
+                currentUnits = units[next];
+                updateStats();
+                drawMap();
+            }
+            
+            // ========== ATTACH EVENT LISTENERS ==========
+            document.getElementById('startBtn').addEventListener('click', startRecording);
+            document.getElementById('stopBtn').addEventListener('click', stopRecording);
+            document.getElementById('clearBtn').addEventListener('click', clearMap);
+            document.getElementById('saveBtn').addEventListener('click', saveSurvey);
+            document.getElementById('loadBtn').addEventListener('click', loadSurveys);
+            document.getElementById('enableGpsBtn').addEventListener('click', enableGPS);
+            document.getElementById('centerLocationBtn').addEventListener('click', centerOnMyLocation);
+            document.getElementById('streetMapBtn').addEventListener('click', () => setMapLayer(streetLayer, 'Street'));
+            document.getElementById('satelliteBtn').addEventListener('click', () => setMapLayer(satelliteLayer, 'Satellite'));
+            document.getElementById('topoMapBtn').addEventListener('click', () => setMapLayer(topoLayer, 'Topographic'));
+            document.getElementById('exportReportBtn').addEventListener('click', generateReport);
+            document.getElementById('searchBtn').addEventListener('click', searchLocation);
+            document.getElementById('areaCard').addEventListener('click', showUnitsModal);
+            
+            window.onclick = (event) => {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                }
             };
-            document.getElementById('cancelSearch').onclick = () => modal.style.display = 'none';
-        }
-        
-        function showUnitsModal() {
-            const units = ['hectares', 'acres', 'sqkm', 'sqm'];
-            const next = (units.indexOf(currentUnits) + 1) % units.length;
-            currentUnits = units[next];
-            updateStats();
-            drawMap();
-        }
-        
-        // Event Listeners
-        startBtn.addEventListener('click', startRecording);
-        stopBtn.addEventListener('click', stopRecording);
-        clearBtn.addEventListener('click', clearMap);
-        saveBtn.addEventListener('click', saveSurvey);
-        loadBtn.addEventListener('click', loadSurveys);
-        enableGpsBtn.addEventListener('click', enableGPS);
-        centerLocationBtn.addEventListener('click', centerOnMyLocation);
-        streetMapBtn.addEventListener('click', () => setMapLayer(streetLayer, 'Street'));
-        satelliteBtn.addEventListener('click', () => setMapLayer(satelliteLayer, 'Satellite'));
-        topoMapBtn.addEventListener('click', () => setMapLayer(topoLayer, 'Topographic'));
-        exportReportBtn.addEventListener('click', generateReport);
-        searchBtn.addEventListener('click', searchLocation);
-        document.getElementById('areaCard').addEventListener('click', showUnitsModal);
-        
-        window.onclick = (event) => {
-            if (event.target.classList.contains('modal')) {
-                event.target.style.display = 'none';
-            }
-        };
-        
-        // Initialize
-        initMap();
-        console.log('Movement-Based Tracking Ready - Records ONLY when you move');
-    </script>
-</body>
-</html>
-        // Initialize
-        initMap();
-        console.log('Land Surveyor Pro ready - Click "Enable GPS" to start');
+            
+            // Initialize map
+            initMap();
+            
+            // Force map resize on orientation change
+            window.addEventListener('resize', () => {
+                if (map) setTimeout(() => map.invalidateSize(), 100);
+            });
+            
+            console.log('App ready - Click Enable GPS');
+        });
     </script>
 </body>
 </html>

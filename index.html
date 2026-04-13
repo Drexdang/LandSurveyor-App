@@ -565,67 +565,138 @@
                 );
             }
             
-            function startRecording() {
-                if (!gpsEnabled) { alert('Enable GPS first'); enableGPS(); return; }
-                if (pathPoints.length > 0 && !confirm('Start new survey?')) return;
-                isRecording = true;
-                pathPoints = [];
-                lastRecordedPoint = null;
-                totalDistanceMoved = 0;
-                clearMarkers();
-                drawMap();
-                watchId = navigator.geolocation.watchPosition(
-                    (position) => {
-                        const lat = position.coords.latitude, lng = position.coords.longitude, acc = position.coords.accuracy;
-                        currentAccuracy = Math.round(acc);
-                        currentPosition = { lat, lng };
-                        updateLiveMarker(lat, lng);
-                        document.getElementById('gpsAccuracy').textContent = currentAccuracy;
-                        if (acc > MAX_GPS_ACCURACY) { document.getElementById('infoPanel').innerHTML = `Poor GPS: ${acc}m`; return; }
-                        if (!lastRecordedPoint) {
-                            addPoint(lat, lng, false);
-                            lastRecordedPoint = [lat, lng];
-                            document.getElementById('infoPanel').innerHTML = 'Recording started!';
-                            document.getElementById('movementStatus').innerHTML = 'Moving';
-                            return;
-                        }
-                        const distanceMoved = calculateDistance(lastRecordedPoint[0], lastRecordedPoint[1], lat, lng);
-                        if (lastLivePoint) totalDistanceMoved += calculateDistance(lastLivePoint[0], lastLivePoint[1], lat, lng);
-                        lastLivePoint = [lat, lng];
-                        document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
-                        if (distanceMoved >= MIN_MOVEMENT_DISTANCE) {
-                            addPoint(lat, lng, false);
-                            lastRecordedPoint = [lat, lng];
-                            document.getElementById('infoPanel').innerHTML = `Point ${pathPoints.length}`;
-                            if (map) map.setView([lat, lng], 18);
-                            checkAutoClose();
-                        } else {
-                            document.getElementById('infoPanel').innerHTML = 'Standing...';
-                            document.getElementById('movementStatus').innerHTML = 'Standing';
-                        }
-                    },
-                    (error) => { alert('GPS Error'); stopRecording(); },
-                    { enableHighAccuracy: true, timeout: 10000, distanceFilter: 1 }
-                );
-                document.getElementById('startBtn').disabled = true;
-                document.getElementById('stopBtn').disabled = false;
-                document.getElementById('recordingIndicator').style.display = 'flex';
+            // ========== ACCURACY-IMPROVED START RECORDING ==========
+function startRecording() {
+    if (!gpsEnabled) { alert('Enable GPS first'); enableGPS(); return; }
+    if (pathPoints.length > 0 && !confirm('Start new survey? Current data will be cleared.')) return;
+    
+    isRecording = true;
+    pathPoints = [];
+    lastRecordedPoint = null;
+    totalDistanceMoved = 0;
+    lastLivePoint = null;
+    clearMarkers();
+    drawMap();
+    
+    // Reset accuracy tracking
+    currentAccuracy = 0;
+    let goodPointsCount = 0;
+    
+    watchId = navigator.geolocation.watchPosition(
+        (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const acc = position.coords.accuracy;
+            const speed = position.coords.speed || 0;
+            
+            currentAccuracy = Math.round(acc);
+            currentPosition = { lat, lng };
+            updateLiveMarker(lat, lng);
+            document.getElementById('gpsAccuracy').textContent = currentAccuracy;
+            
+            // ACCURACY CHECK - Skip if GPS is too inaccurate
+            if (acc > MAX_GPS_ACCURACY) {
+                document.getElementById('infoPanel').innerHTML = `⚠️ Poor GPS: ${acc}m - Move to open area`;
+                return;
             }
             
-            function stopRecording() {
-                if (watchId) navigator.geolocation.clearWatch(watchId);
-                isRecording = false;
-                document.getElementById('startBtn').disabled = false;
-                document.getElementById('stopBtn').disabled = true;
-                document.getElementById('recordingIndicator').style.display = 'none';
-                document.getElementById('movementStatus').innerHTML = 'Ready';
-                if (pathPoints.length >= 3) {
-                    const areaHa = calculateArea(pathPoints) * 0.0001;
-                    alert(`✅ Survey Complete!\nArea: ${areaHa.toFixed(2)} ha\nPoints: ${pathPoints.length}\nWalked: ${totalDistanceMoved.toFixed(0)}m`);
-                } else {
-                    alert(`Need at least 3 points. Walk ${MIN_MOVEMENT_DISTANCE}m between points.`);
+            // SPEED CHECK - Skip unrealistic speed spikes
+            if (speed > 15) {
+                document.getElementById('infoPanel').innerHTML = `⚠️ GPS unstable - moving too fast`;
+                return;
+            }
+            
+            if (!lastRecordedPoint) {
+                addPoint(lat, lng, false);
+                lastRecordedPoint = [lat, lng];
+                lastLivePoint = [lat, lng];
+                goodPointsCount++;
+                document.getElementById('infoPanel').innerHTML = `✅ Recording started! Walk boundary... (Acc: ${acc}m)`;
+                document.getElementById('movementStatus').innerHTML = 'Moving';
+                return;
+            }
+            
+            const distanceMoved = calculateDistance(lastRecordedPoint[0], lastRecordedPoint[1], lat, lng);
+            
+            // Calculate step distance for total walked
+            if (lastLivePoint) {
+                const stepDist = calculateDistance(lastLivePoint[0], lastLivePoint[1], lat, lng);
+                if (stepDist < 50) { // Only count realistic steps
+                    totalDistanceMoved += stepDist;
                 }
             }
+            lastLivePoint = [lat, lng];
+            document.getElementById('lastDistance').textContent = totalDistanceMoved.toFixed(1);
+            
+            // MOVEMENT CHECK - Only record when actually moving
+            if (distanceMoved >= MIN_MOVEMENT_DISTANCE) {
+                addPoint(lat, lng, false);
+                lastRecordedPoint = [lat, lng];
+                goodPointsCount++;
+                document.getElementById('infoPanel').innerHTML = `📍 Point ${pathPoints.length} recorded | Moved ${distanceMoved.toFixed(1)}m | Acc: ${acc}m`;
+                if (map) map.setView([lat, lng], 18);
+                
+                // AUTO-CLOSE CHECK
+                if (pathPoints.length >= 3) {
+                    const first = pathPoints[0];
+                    const last = pathPoints[pathPoints.length - 1];
+                    if (calculateDistance(first[0], first[1], last[0], last[1]) <= AUTO_CLOSE_DISTANCE) {
+                        stopRecording();
+                        alert(`✅ Boundary closed!\nArea: ${(calculateArea(pathPoints)*0.0001).toFixed(2)} hectares\nAccuracy: ±${currentAccuracy}m`);
+                    }
+                }
+            } else {
+                document.getElementById('infoPanel').innerHTML = `🚶 Standing still - need ${MIN_MOVEMENT_DISTANCE}m to record (moved ${distanceMoved.toFixed(1)}m)`;
+                document.getElementById('movementStatus').innerHTML = 'Standing';
+            }
+        },
+        (error) => { 
+            console.error('GPS watch error:', error);
+            alert('GPS Tracking Error. Please check your location settings.');
+            stopRecording(); 
+        },
+        { 
+            enableHighAccuracy: true, 
+            timeout: 10000, 
+            maximumAge: 0,
+            distanceFilter: 1 
+        }
+    );
+    
+    document.getElementById('startBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = false;
+    document.getElementById('recordingIndicator').style.display = 'flex';
+}
+            
+            // ========== ACCURACY-IMPROVED STOP RECORDING ==========
+function stopRecording() {
+    if (watchId) navigator.geolocation.clearWatch(watchId);
+    isRecording = false;
+    document.getElementById('startBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = true;
+    document.getElementById('recordingIndicator').style.display = 'none';
+    document.getElementById('movementStatus').innerHTML = 'Ready';
+    
+    if (pathPoints.length >= 3) {
+        const area = calculateArea(pathPoints);
+        const areaHa = area * 0.0001;
+        const perimeter = calculatePerimeter(pathPoints);
+        const perimeterKm = perimeter / 1000;
+        
+        let accuracyRating = '';
+        if (currentAccuracy <= 5) accuracyRating = '🏆 Excellent (±5m) - High confidence';
+        else if (currentAccuracy <= 10) accuracyRating = '✅ Good (±10m) - Suitable for documentation';
+        else if (currentAccuracy <= 20) accuracyRating = '⚠️ Fair (±20m) - For reference only';
+        else accuracyRating = '❌ Poor (±' + currentAccuracy + 'm) - Re-survey recommended';
+        
+        alert(`✅ SURVEY COMPLETE!\n\n📐 Area: ${areaHa.toFixed(2)} hectares (${(areaHa*2.471).toFixed(2)} acres)\n📏 Perimeter: ${perimeterKm.toFixed(2)} km\n📍 Points: ${pathPoints.length}\n🚶 Walked: ${totalDistanceMoved.toFixed(0)} meters\n🎯 GPS Accuracy: ±${currentAccuracy} meters\n📊 ${accuracyRating}\n\n💾 Click "Save" to store or "PDF" to generate report.`);
+        
+        document.getElementById('infoPanel').innerHTML = `Survey complete! Accuracy: ±${currentAccuracy}m`;
+    } else {
+        alert(`❌ Not enough points. Need at least 3 points.\nWalk at least ${MIN_MOVEMENT_DISTANCE} meters between points.\nCurrent points: ${pathPoints.length}`);
+        document.getElementById('infoPanel').innerHTML = 'Not enough points - walk more';
+    }
+}
             
             function checkAutoClose() {
                 if (pathPoints.length < 3) return;
